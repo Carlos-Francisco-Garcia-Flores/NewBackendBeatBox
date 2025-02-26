@@ -4,19 +4,24 @@ import { Request, Response, NextFunction } from 'express';
 @Injectable()
 export class CorsMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
-    const allowedOrigins = ['http://localhost:5173', 'https://beatbox-blond.vercel.app'];
-    const origin = req.headers.origin?.replace(/\/$/, ''); // Remueve la barra final, si existe
+    // Obtiene los orígenes permitidos desde .env o usa valores por defecto
+    const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [
+      'http://localhost:5173',
+      'https://beatbox-blond.vercel.app',
+    ];
+
+    const origin = req.headers.origin; // Captura el origen de la solicitud
 
     if (origin && allowedOrigins.includes(origin)) {
-      res.header('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true'); // Permitir cookies
     }
 
-    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
 
     if (req.method === 'OPTIONS') {
-      return res.sendStatus(200);
+      return res.status(204).send(); // Responder con 204 No Content para preflight requests
     }
 
     next();

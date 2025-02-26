@@ -8,6 +8,6 @@ export class LoginDto {
 
     @Prop({ required: true })
     @IsNotEmpty({ message: "Por favor, ingrese su contraseña "})
-    contraseña: string;
+    password: string;
 
 }

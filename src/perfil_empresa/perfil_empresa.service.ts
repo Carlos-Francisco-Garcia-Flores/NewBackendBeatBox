@@ -1,49 +1,37 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { PerfilEmpresa, PerfilEmpresaDocument } from './schemas/perfil_empresa.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { PerfilEmpresa } from './perfil_empresa.entity';
 import { UpdatePerfilEmpresaDto } from './dto/update-perfil_empresa.dto';
 
 @Injectable()
 export class PerfilEmpresaService {
   constructor(
-    @InjectModel(PerfilEmpresa.name) private perfilEmpresaModel: Model<PerfilEmpresaDocument>,
+    @InjectRepository(PerfilEmpresa)
+    private perfilEmpresaRepository: Repository<PerfilEmpresa>,
   ) {}
 
   async obtenerPerfil(): Promise<PerfilEmpresa> {
-    const perfil = await this.perfilEmpresaModel.findOne().exec();
+    const perfil = await this.perfilEmpresaRepository.findOne({ where: {} });
     if (!perfil) {
       throw new NotFoundException('Perfil de la empresa no encontrado');
     }
     return perfil;
   }
-
-  // async actualizarPerfil(updateDto: UpdatePerfilEmpresaDto): Promise<PerfilEmpresa> {
-  //   const perfil = await this.perfilEmpresaModel.findOneAndUpdate({}, updateDto, {
-  //     new: true,
-  //     upsert: true, // Crea el documento si no existe
-  //   }).exec();
-  //   return perfil;
-  // }
 
   async actualizarCampo(campo: string, valor: string): Promise<PerfilEmpresa> {
-    if (!['eslogan', 'mision', 'vision'].includes(campo)) {
+    if (!['eslogan', 'mision', 'vision', 'logo'].includes(campo)) {
       throw new BadRequestException(`El campo ${campo} no es válido`);
     }
-  
-    const updateObject = { [campo]: valor };
-  
-    const perfil = await this.perfilEmpresaModel.findOneAndUpdate(
-      {},
-      { $set: updateObject },
-      { new: true, upsert: true }, // Crear si no existe
-    );
-  
+
+    let perfil = await this.perfilEmpresaRepository.findOne({ where: {} });
+
     if (!perfil) {
-      throw new NotFoundException('Perfil de la empresa no encontrado');
+      perfil = this.perfilEmpresaRepository.create({ [campo]: valor });
+    } else {
+      (perfil as any)[campo] = valor;
     }
-  
-    return perfil;
+
+    return this.perfilEmpresaRepository.save(perfil);
   }
-  
 }

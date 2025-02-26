@@ -1,16 +1,12 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';  // Importar TypeOrmModule
 import { SocialService } from './social.service';
 import { SocialController } from './social.controller';
-import { RedSocial, RedSocialSchema } from './schemas/red-social.schema';
-import { AuthModule } from '../auth/auth.module';  // Importamos AuthModule para usar JWT y autenticación
+import { RedSocial } from './red-social.entity';  // Importar la entidad
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: RedSocial.name, schema: RedSocialSchema }
-    ]),
-    AuthModule,
+    TypeOrmModule.forFeature([RedSocial]), // Usar TypeOrmModule con la entidad
   ],
   providers: [SocialService],
   controllers: [SocialController],

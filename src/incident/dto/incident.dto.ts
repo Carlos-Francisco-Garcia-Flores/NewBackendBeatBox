@@ -1,19 +1,20 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
 
 export class RegisterIncidentDto {
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
-  usuario: string;
+  idusuario: number;
 }
 
 export class CloseIncidentDto {
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
-  usuario: string;
+  idusuario: number;
 }
 
 export class UsernameIsBlockedDto {
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
-  usuario: string;
+  idusuario: number;
+
 }

@@ -1,16 +1,14 @@
+// src/configuracion/configuracion.module.ts
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Configuracion, ConfiguracionSchema } from './schemas/configuracion.schema';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Configuracion } from './configuracion.entity';
 import { ConfiguracionService } from './configuracion.service';
 import { ConfiguracionController } from './configuracion.controller';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Configuracion.name, schema: ConfiguracionSchema }]),
-  ],
+  imports: [TypeOrmModule.forFeature([Configuracion])],
   controllers: [ConfiguracionController],
   providers: [ConfiguracionService],
-  exports: [ConfiguracionService, MongooseModule ],
-
+  exports: [ConfiguracionService],
 })
 export class ConfiguracionModule {}

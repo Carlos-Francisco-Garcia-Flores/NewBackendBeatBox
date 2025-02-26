@@ -1,15 +1,14 @@
+// src/documentos-regulatorios/documento-regulatorio.module.ts
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { DocumentoRegulatorioController } from './documento-regulatorio.controller';
 import { DocumentoRegulatorioService } from './documento-regulatorio.service';
-import { DocumentoRegulatorio, DocumentoRegulatorioSchema } from './schemas/documento-regulatorio.schema.ts';
-import { AuthModule } from '../auth/auth.module';  // Importamos AuthModule para usar JWT y autenticación
+import { DocumentoRegulatorio } from './documento-regulatorio.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: DocumentoRegulatorio.name, schema: DocumentoRegulatorioSchema }
-    ]),
+    TypeOrmModule.forFeature([DocumentoRegulatorio]),
     AuthModule,
   ],
   controllers: [DocumentoRegulatorioController],

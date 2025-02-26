@@ -7,5 +7,5 @@ export class CreateRedSocialDto {
 
   @IsNotEmpty()
   @IsUrl()
-  link: string;
+  linkRed: string;
 }

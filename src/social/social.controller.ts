@@ -1,8 +1,6 @@
-// src/social/social.controller.ts
-
 import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { SocialService } from './social.service';
-import { RedSocial } from './schemas/red-social.schema';
+import { RedSocial } from './red-social.entity';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CreateRedSocialDto } from './dto/create-red-social.dto';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -17,7 +15,7 @@ export class SocialController {
   @Roles('admin')
   @Post('agregar')
   async createOrUpdate(@Body() createRedSocialDto: CreateRedSocialDto): Promise<RedSocial> {
-    return this.socialService.createOrUpdate(createRedSocialDto.tipo, createRedSocialDto.link);
+    return this.socialService.createOrUpdate(createRedSocialDto.tipo, createRedSocialDto.linkRed);
   }
 
   // Ruta para obtener todas las redes sociales

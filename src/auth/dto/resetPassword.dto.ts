@@ -5,7 +5,7 @@ import { IsString, IsEmail, IsNotEmpty, MinLength, MaxLength  } from "class-vali
 export class ForgotPasswordDto {
     @Prop({ required: true })
     @IsEmail({}, { message: "Por favor, proporciona un correo valido" })
-    correo_Electronico: string;
+    correo_electronico: string;
 }
 
 export class ResetPasswordDto {

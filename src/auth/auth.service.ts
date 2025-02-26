@@ -1,11 +1,10 @@
 import * as bcrypt from 'bcrypt';
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, HttpStatus , UnauthorizedException} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Usuarios, UserDocument } from './schemas/user.schema';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, HttpStatus, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Usuarios } from './usuario.entity'; // Entidad de usuario en TypeORM
 import { JwtService } from '@nestjs/jwt';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/resetPassword.dto';
-import { randomBytes } from 'crypto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto, ActivationDto } from './dto/register.dto';
 import { EmailService } from '../services/email.service';
@@ -13,11 +12,9 @@ import { OtpService } from '../services/otp.service';
 import { PwnedService } from '../services/pwned.service';
 import { ZxcvbnService } from '../services/zxcvbn.service';
 import { IncidentService } from '../incident/incident.service';
-import { Response } from 'express'; 
-import { Res } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { Request } from 'express';
-
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +23,7 @@ export class AuthService {
   }
 
   constructor(
-    @InjectModel(Usuarios.name) private userModel: Model<UserDocument>,
+    @InjectRepository(Usuarios) private userRepository: Repository<Usuarios>,
     private jwtService: JwtService,
     private incidentService: IncidentService,
     private emailService: EmailService,
@@ -37,181 +34,157 @@ export class AuthService {
 
   // Registro de usuario, hasheo de contraseña
   async register(registerDto: RegisterDto): Promise<any> {
-    const { sessionId, usuario, contraseña, correo_Electronico } = registerDto;
-  
-    console.log('Iniciando registro...'); // Log antes del inicio del flujo
-  
+    const { sessionId, usuario, password, correo_electronico } = registerDto;
+
     // Verificar si el correo ya está registrado
-    const existingEmail = await this.userModel.findOne({ correo_Electronico });
+    const existingEmail = await this.userRepository.findOne({ where: { correo_electronico } });
     if (existingEmail) {
-      console.log(`El correo '${correo_Electronico}' ya está registrado.`);
       throw new BadRequestException({
-        message: `El correo electrónico '${correo_Electronico}' ya está registrado, seleccione un correo valido.`,
+        message: `El correo electrónico '${correo_electronico}' ya está registrado.`,
         error: 'Conflict',
       });
     }
 
     // Verificar si el nombre de usuario ya está registrado
-    const existingUser = await this.userModel.findOne({ usuario });
+    const existingUser = await this.userRepository.findOne({ where: { usuario } });
     if (existingUser) {
-      console.log(`El usuario '${usuario}' ya está registrado.`);
       throw new BadRequestException({
         message: `El nombre de usuario '${usuario}' ya está en uso.`,
         error: 'Conflict',
       });
     }
 
-    
-  
-    console.log('Verificando contraseña con zxcvbn...'); // Log antes de la validación de la contraseña
-  
     // Verificar la contraseña con zxcvbn
-    try {
-      const zxcvbnResult = this.zxcvbnService.validatePassword(contraseña);
-  
-      // Si zxcvbnResult no es null, significa que la contraseña es débil
-      if (zxcvbnResult) {
-        console.log('Contraseña débil:', contraseña); // Log si la contraseña es débil
-        throw new BadRequestException({
-          message: 'La contraseña ingresada es débil',
-          error: 'BadRequest',
-        });
-      }
-  
-      console.log('Contraseña validada correctamente'); // Log cuando la contraseña pasa la validación
-  
-    } catch (error) {
-      console.error('Error durante la validación de contraseña:', error);
-      throw new BadRequestException('Error al verificar la contraseña');
+    const zxcvbnResult = this.zxcvbnService.validatePassword(password);
+    if (zxcvbnResult) {
+      throw new BadRequestException({
+        message: 'La contraseña ingresada es débil',
+        error: 'BadRequest',
+      });
     }
-  
-    console.log('Verificando si la contraseña fue comprometida...'); // Log antes de la verificación de la contraseña en filtraciones
-  
-    const timesCommitted = await this.pwnedservice.verificationPassword(contraseña);
-  
+
+    // Verificar si la contraseña fue comprometida
+    const timesCommitted = await this.pwnedservice.verificationPassword(password);
     if (timesCommitted > 0) {
-      console.log(`La contraseña fue comprometida ${timesCommitted} veces`); // Log si la contraseña fue comprometida
       throw new BadRequestException({
         message: `La contraseña ya fue comprometida ${timesCommitted} veces`,
         error: 'BadRequest',
       });
     }
-  
-    console.log('Hasheando contraseña...'); // Log antes del hasheo de la contraseña
-    const hashedPassword = await bcrypt.hash(contraseña, 10); // Hash de la contraseña
 
-    console.log('Creando nuevo usuario...'); // Log antes de crear el nuevo usuario
-    const newUser = new this.userModel({
-        sessionID: sessionId,
-        usuario: usuario,
-        contraseña: hashedPassword,
-        correo_Electronico: correo_Electronico,
+    // Hasheo de la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear nuevo usuario
+    const newUser = this.userRepository.create({
+      sessionId: sessionId,
+      usuario,
+      password: hashedPassword,
+      correo_electronico,
     });
 
-    console.log('Enviando correo de verificación...'); // Log antes de enviar el correo de verificación
-    await this.send_email_verification(correo_Electronico);
+    // Enviar correo de verificación
+    await this.send_email_verification(correo_electronico);
 
-    console.log('Guardando nuevo usuario en la base de datos...'); // Log antes de guardar el nuevo usuario
-    await newUser.save();
+    // Guardar el nuevo usuario en la base de datos
+    await this.userRepository.save(newUser);
 
-    console.log('Registro completado exitosamente'); // Log al final del registro exitoso
     return {
-        status: HttpStatus.OK,
-        message: 'Gracias por registrarse, hemos enviado un link de activación de cuenta a su correo',
+      status: HttpStatus.OK,
+      message: 'Gracias por registrarse, hemos enviado un link de activación de cuenta a su correo',
     };
-}
-  
-  
+  }
 
-  // TODO: Login de usuario
+  // Login de usuario
   async login(loginDto: LoginDto): Promise<{ token: string }> {
-    const { usuario, contraseña } = loginDto;
-  
+    const { usuario, password } = loginDto;
+
     const sessionId = this.generateSessionID();
-    const user = await this.userModel.findOne({ usuario });
-  
+    const user = await this.userRepository.findOne({ where: { usuario } });
+
     if (!user) {
-      throw new ConflictException(
-        `El usuario ${usuario} no está registrado, por favor regístrese`,
-      );
+      throw new ConflictException(`El usuario ${usuario} no está registrado, por favor regístrese`);
     }
 
-     // Verificar si la cuenta está bloqueada manualmente por un administrador
+    // Verificar si la cuenta está bloqueada manualmente por un administrador
     if (user.bloqueado) {
       throw new ForbiddenException(
         'Su cuenta ha sido bloqueada por los administradores. En caso de ser necesario comuníquese con soporte técnico.',
       );
     }
-  
+
     if (!user.estado) {
       throw new ForbiddenException(
         'Estimado usuario, le solicitamos que verifique su cuenta para habilitar el acceso a nuestros servicios.',
       );
     }
-  
-    const userIncident = await this.incidentService.usernameIsBlocked({ usuario });
-    if (userIncident && userIncident.isBlocked) {
-      const bloqueExpiresAtMexico = new Date(userIncident.blockExpiresAt).toLocaleString('es-MX', {
+
+    // Verificar si el usuario ha sido bloqueado debido a incidentes
+    const userIncident = await this.incidentService.usernameIsBlocked({ idusuario: Number(user.id) });
+    if (userIncident && userIncident.isblocked) {
+      const bloqueExpiresAtMexico = new Date(userIncident.blockexpiresat).toLocaleString('es-MX', {
         timeZone: 'America/Mexico_City',
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
         hour12: false,
       });
-  
+
       throw new ForbiddenException(
         `Su cuenta ha sido bloqueada temporalmente. Podrá acceder nuevamente a las ${bloqueExpiresAtMexico}.`,
       );
     }
-  
-    const isPasswordMatching = await bcrypt.compare(contraseña, user.contraseña);
-  
+
+    // Verificar la contraseña
+    const isPasswordMatching = await bcrypt.compare(password, user.password);
     if (!isPasswordMatching) {
-      await this.incidentService.loginFailedAttempt(usuario);
-      throw new ConflictException('Acceso denegado: Las credenciales incorrectas');
+      await this.incidentService.loginFailedAttempt(parseInt(user.id, 10));
+      throw new ConflictException('Acceso denegado: Las credenciales son incorrectas');
     }
-  
+
+    // Generar nuevo sessionId y guardar el usuario
     user.sessionId = sessionId;
-    await user.save();
-  
+    await this.userRepository.save(user);
+
+    // Generar JWT
     const payload = { username: user.usuario, sub: user.id, role: user.role };
     const token = this.jwtService.sign(payload);
-  
+
     return { token };
   }
 
-  // TODO: Olvidar Contraseña
+  // Olvidar Contraseña
   async forgot_password(forgotPasswordDto: ForgotPasswordDto): Promise<any> {
-    const { correo_Electronico } = forgotPasswordDto;
+    const { correo_electronico } = forgotPasswordDto;
 
-    const user = await this.userModel.findOne({ correo_Electronico });
+    const user = await this.userRepository.findOne({ where: { correo_electronico } });
 
     if (!user) {
       throw new BadRequestException('El correo no está registrado');
     }
 
     const resetToken = this.jwtService.sign({ id: user.id }, { expiresIn: '1h' });
-    await this.emailService.sendPasswordResetEmail(correo_Electronico, resetToken);
+    await this.emailService.sendPasswordResetEmail(correo_electronico, resetToken);
 
     return { message: 'Se ha enviado un correo con el enlace de recuperación' };
   }
 
-  // TODO: Restablecer Contraseña
+  // Restablecer Contraseña
   async reset_password(resetPasswordDto: ResetPasswordDto): Promise<any> {
     const { token, new_password } = resetPasswordDto;
 
     try {
       const decoded = this.jwtService.verify(token);
-      const user = await this.userModel.findById(decoded.id);
+      const user = await this.userRepository.findOne({ where: { id: decoded.id } });
 
       if (!user) {
         throw new BadRequestException('Token inválido o expirado');
       }
 
       const hashedPassword = await bcrypt.hash(new_password, 10);
-      user.contraseña = hashedPassword;
+      user.password = hashedPassword;
 
-      await user.save();
+      await this.userRepository.save(user);
       await this.revokeSessions(user.id);
 
       return { message: 'Contraseña actualizada exitosamente' };
@@ -221,7 +194,7 @@ export class AuthService {
   }
 
   // Enviar correo de verificación por OTP
-   async send_email_verification(email: string): Promise<any> {
+  async send_email_verification(email: string): Promise<any> {
     const otpCode = this.otpService.generateOTP();
     await this.emailService.send_code_verfication(otpCode, email);
 
@@ -233,18 +206,18 @@ export class AuthService {
 
   // Verificación de Email
   async verify_email(activationDto: ActivationDto): Promise<any> {
-    const { correo_Electronico, otp } = activationDto;
+    const { correo_electronico, otp } = activationDto;
 
     const isValid = this.otpService.verifyOTP(otp);
     if (isValid) {
-      const user = await this.userModel.findOne({ correo_Electronico });
+      const user = await this.userRepository.findOne({ where: { correo_electronico } });
 
       if (!user) {
         throw new BadRequestException('El correo no está registrado');
       }
 
       user.estado = true;
-      await user.save();
+      await this.userRepository.save(user);
 
       return { status: HttpStatus.OK, message: 'Se ha verificado con éxito la cuenta' };
     }
@@ -254,7 +227,7 @@ export class AuthService {
 
   // Revocación de cookies (sesiones)
   private async revokeSessions(userId: string): Promise<any> {
-    await this.userModel.updateOne({ _id: userId }, { $unset: { sessionId: '' } });
+    await this.userRepository.update(userId, { sessionId: null });
     return { message: 'Todas las sesiones han sido revocadas.' };
   }
 

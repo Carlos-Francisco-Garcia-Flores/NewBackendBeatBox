@@ -11,13 +11,14 @@ export class IncidentController {
 
   @Post('incident')
   async registerFailedAttempt(@Body() registerIncidentDto: RegisterIncidentDto) {
-    return this.incidentService.loginFailedAttempt(registerIncidentDto.usuario);
+    return this.incidentService.loginFailedAttempt(registerIncidentDto.idusuario);
   }
+
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Get('incident/:usuario')
-async getIncidentByUser(@Param('usuario') usuario: string) {
+  async getIncidentByUser(@Param('usuario') usuario: number) {
   try {
     const incident = await this.incidentService.getIncidentByUser(usuario);
 

@@ -1,21 +1,19 @@
-import { Module, forwardRef  } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { IncidentSchema } from './schemas/incident.schema';
+import { Module, forwardRef } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Incident } from './incident.entity';  // Importa tu entidad de TypeORM
 import { IncidentController } from './incident.controller';
 import { IncidentService } from './incident.service';
 import { ConfiguracionModule } from '../configuracion/configuracion.module';
-import { UsuariosModule } from '../usuarios/usuarios.module'; 
+import { UsuariosModule } from '../usuarios/usuarios.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: 'Incident', schema: IncidentSchema }
-    ]),
+    TypeOrmModule.forFeature([Incident]),  
     ConfiguracionModule,
-    forwardRef(() => UsuariosModule), // Manejar dependencias circulares
+    forwardRef(() => UsuariosModule),  
   ],
   controllers: [IncidentController],
   providers: [IncidentService],
-  exports: [IncidentService]
+  exports: [IncidentService],
 })
-export class IncidentModule {}  
+export class IncidentModule {}

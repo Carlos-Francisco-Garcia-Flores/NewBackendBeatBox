@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body, Param, Patch, UseGuards, Delete } from '@nestjs/common';
+import { 
+  Controller, Get, Post, Body, Param, Patch, UseGuards, Delete 
+} from '@nestjs/common';
 import { LogosService } from './logos.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { CreateLogoDto } from './create-logo.dto';
 
 @Controller('logos')
 export class LogosController {
@@ -12,11 +15,11 @@ export class LogosController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Post()
-  async create(@Body('link') link: string) {
-    return this.logosService.create(link);
+  async create(@Body() createLogoDto: CreateLogoDto) {
+    return this.logosService.create(createLogoDto);
   }
 
-  // Obtener todos los documentos
+  // Obtener todos los logos
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Get()
@@ -38,7 +41,7 @@ export class LogosController {
     return this.logosService.setVigente(id);
   }
 
-
+  // Eliminar un logo
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Delete(':id')

@@ -1,59 +1,68 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Logo, LogoDocument } from './schemas/logo.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Logos } from './logos.entity';
+import { CreateLogoDto } from './create-logo.dto';
 import { cloudinary } from '../cloudinary/cloudinary.provider';
 
 @Injectable()
 export class LogosService {
-  constructor(@InjectModel(Logo.name) private logoModel: Model<LogoDocument>) {}
+  constructor(
+    @InjectRepository(Logos)
+    private readonly logoRepository: Repository<Logos>,
+  ) {}
 
   // Crear un nuevo logo y establecerlo como vigente
-  async create(link: string): Promise<Logo> {
+  async create(createLogoDto: CreateLogoDto): Promise<Logos> {
     // Marcar como no vigente todos los logos existentes
-    await this.logoModel.updateMany({}, { vigente: false }).exec();
+    await this.logoRepository.update({}, { vigente: false });
 
     // Crear y guardar el nuevo logo como vigente
-    const newLogo = new this.logoModel({ link, vigente: true });
-    return newLogo.save();
+    const newLogo = this.logoRepository.create({
+      ...createLogoDto,
+      vigente: true, // Se marca como vigente automáticamente
+    });
+
+    return this.logoRepository.save(newLogo);
   }
 
   // Obtener todos los documentos de la colección
-  async findAll(): Promise<Logo[]> {
-    return this.logoModel.find().exec();
+  async findAll(): Promise<Logos[]> {
+    return this.logoRepository.find();
   }
 
   // Obtener el logo vigente
-  async findVigente(): Promise<Logo> {
-    const vigenteLogo = await this.logoModel.findOne({ vigente: true }).exec();
+  async findVigente(): Promise<Logos> {
+    const vigenteLogo = await this.logoRepository.findOne({
+      where: { vigente: true },
+    });
+
     if (!vigenteLogo) {
       throw new NotFoundException('No hay ningún logo vigente.');
     }
+
     return vigenteLogo;
   }
 
   // Establecer un logo específico como vigente
-  async setVigente(id: string): Promise<Logo> {
-    // Marcar como no vigente todos los logos existentes
-    await this.logoModel.updateMany({}, { vigente: false }).exec();
+  async setVigente(id: string): Promise<Logos> {
+    const logo = await this.logoRepository.findOne({ where: { id } });
 
-    // Establecer el logo especificado como vigente
-    const updatedLogo = await this.logoModel.findByIdAndUpdate(
-      id,
-      { vigente: true },
-      { new: true },
-    );
-
-    if (!updatedLogo) {
+    if (!logo) {
       throw new NotFoundException(`Logo con ID ${id} no encontrado.`);
     }
 
-    return updatedLogo;
+    // Marcar todos como no vigentes
+    await this.logoRepository.update({}, { vigente: false });
+
+    // Establecer el logo especificado como vigente
+    logo.vigente = true;
+    return this.logoRepository.save(logo);
   }
 
   // Eliminar un logo por su ID, incluyendo su eliminación en Cloudinary
   async delete(id: string): Promise<void> {
-    const logo = await this.logoModel.findById(id).exec();
+    const logo = await this.logoRepository.findOne({ where: { id } });
 
     if (!logo) {
       throw new NotFoundException(`Logo con ID ${id} no encontrado.`);
@@ -74,8 +83,8 @@ export class LogosService {
       }
     }
 
-    // Eliminar el documento de la base de datos
-    await logo.deleteOne();
+    // Eliminar el logo de la base de datos
+    await this.logoRepository.delete(id);
   }
 
   // Método para extraer el publicId de una URL de Cloudinary

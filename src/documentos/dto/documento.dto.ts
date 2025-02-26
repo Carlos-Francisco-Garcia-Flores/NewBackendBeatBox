@@ -1,4 +1,5 @@
-import { IsString, IsDate, IsOptional } from 'class-validator';
+// src/documentos-regulatorios/dto/documento.dto.ts
+import { IsString, IsOptional, IsDate, IsDecimal } from 'class-validator';
 
 export class CreateDocumentoDto {
   @IsString()
@@ -18,6 +19,14 @@ export class CreateDocumentoDto {
 
 export class UpdateDocumentoDto {
   @IsString()
-  descripcion: string;
+  @IsOptional()
+  descripcion?: string;
 
+  @IsOptional()
+  @IsDate()
+  fechaInicio?: Date;
+
+  @IsOptional()
+  @IsDate()
+  fechaFin?: Date;
 }

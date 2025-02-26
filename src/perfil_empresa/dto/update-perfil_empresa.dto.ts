@@ -1,9 +1,6 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class UpdatePerfilEmpresaDto {
-  @IsString()
-  @IsNotEmpty()
-  eslogan: string;
 
   @IsString()
   @IsNotEmpty()
@@ -12,4 +9,9 @@ export class UpdatePerfilEmpresaDto {
   @IsString()
   @IsNotEmpty()
   vision: string;
+
+  @IsString()
+  @IsOptional() // Permite que sea opcional en la actualización
+  logo?: string;
+  
 }

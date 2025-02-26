@@ -1,137 +1,123 @@
-import { ForbiddenException, Injectable, Inject, forwardRef, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Incident, IncidentDocument } from './schemas/incident.schema';
-import { Configuracion, ConfiguracionDocument } from '../configuracion/schemas/configuracion.schema';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Incident } from './incident.entity';
+import { UsuariosService } from '../usuarios/usuarios.service'; // Importar el servicio
 import { CloseIncidentDto, UsernameIsBlockedDto } from './dto/incident.dto';
-import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Injectable()
 export class IncidentService {
   constructor(
-    @InjectModel(Incident.name) private incidentModel: Model<IncidentDocument>,
-    @InjectModel(Configuracion.name) private configuracionModel: Model<ConfiguracionDocument>,
-    @Inject(forwardRef(() => UsuariosService)) private readonly usuariosService: UsuariosService,
+    @InjectRepository(Incident) private readonly incidentRepository: Repository<Incident>,
+    private readonly usuariosService: UsuariosService,  // Usar el servicio en lugar del repositorio
   ) {}
 
-  // Obtener configuración
-  private async getConfiguracion(): Promise<ConfiguracionDocument> {
-    const config = await this.configuracionModel.findOne().exec();
-    if (!config) {
-      throw new Error('Configuración no encontrada en la base de datos');
+  // Registrar un intento fallido
+  async loginFailedAttempt(idusuario: number): Promise<Incident> {
+    const usuario = await this.usuariosService.findOne(idusuario); // Usar el servicio para buscar el usuario
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con ID ${idusuario} no encontrado.`);
     }
-    return config;
-  }
 
-  // Registrar una nueva incidencia o manejar intentos fallidos
-  async loginFailedAttempt(usuario: string): Promise<Incident> {
-    const config = await this.getConfiguracion();
-    const maxFailedAttempts = config.maxFailedAttempts;
-    const lockTimeMinutes = config.lockTimeMinutes;
+    let incident = await this.incidentRepository.findOne({ where: { usuario } });
 
-    const incident = await this.incidentModel.findOne({ usuario });
     const now = new Date();
+    const maxFailedAttempts = 5; // Puedes traerlo de la configuración
+    const lockTimeMinutes = 10;
 
-    if (incident) {
-      // Si está bloqueado, verificar si ya pasó el tiempo de desbloqueo
-      if (incident.isBlocked && now < incident.blockExpiresAt) {
+    if (!incident) {
+      // Si no existe, creamos uno nuevo
+      incident = this.incidentRepository.create({
+        usuario,
+        failedattempts: 1,
+        totalfailedattempts: 1,
+        lastattempts: now,
+      });
+    } else {
+      if (incident.isblocked && now < incident.blockexpiresat) {
         throw new ForbiddenException(
-          `La cuenta está bloqueada. Inténtalo nuevamente después de ${new Date(
-            incident.blockExpiresAt,
-          ).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`,
+          `Cuenta bloqueada. Intenta después de ${incident.blockexpiresat.toLocaleTimeString()}`,
         );
       }
 
-      if (incident.isBlocked && now >= incident.blockExpiresAt) {
-        // Reiniciar si el tiempo de bloqueo expiró
-        incident.failedAttempts = 0;
-        incident.isBlocked = false;
-        incident.blockExpiresAt = null;
+      if (incident.isblocked && now >= incident.blockexpiresat) {
+        // Desbloquear si el tiempo ya pasó
+        incident.failedattempts = 0;
+        incident.isblocked = false;
+        incident.blockexpiresat = null;
       }
 
-      // Verificar si el siguiente intento fallido excederá el límite
-      if (incident.failedAttempts + 1 >= maxFailedAttempts) {
-        incident.isBlocked = true;
-        incident.blockExpiresAt = new Date(now.getTime() + lockTimeMinutes * 60 * 1000);
-      } else {
-        // Incrementar intentos fallidos si no se excede el límite
-        incident.failedAttempts += 1;
+      // Incrementar intentos fallidos
+      incident.failedattempts += 1;
+      incident.totalfailedattempts += 1;
+      incident.lastattempts = now;
+
+      // Bloquear si excede el límite
+      if (incident.failedattempts >= maxFailedAttempts) {
+        incident.isblocked = true;
+        incident.blockexpiresat = new Date(now.getTime() + lockTimeMinutes * 60 * 1000);
       }
-
-      // Incrementar el contador total de intentos fallidos
-      incident.totalFailedAttempts = (incident.totalFailedAttempts || 0) + 1;
-      incident.lastAttempt = now;
-
-      return incident.save();
-    } else {
-      // Crear una nueva incidencia
-      const newIncident = new this.incidentModel({
-        usuario,
-        failedAttempts: 1,
-        totalFailedAttempts: 1, // Comienza con el primer intento
-        lastAttempt: now,
-      });
-      return newIncident.save();
     }
+
+    return await this.incidentRepository.save(incident);
   }
 
-  // Obtener incidencia abierta
+  // Obtener todas las incidencias abiertas
   async getOpenIncident(): Promise<Incident[]> {
-    return this.incidentModel.find({ status: 'open' }).exec();
+    return this.incidentRepository.find({ where: { state: 'open' } });
   }
 
-  // Mostrar incidencia por usuario 
-  async getIncidentByUser(usuario: string): Promise<Incident | null> {
-    // Verificar si el usuario existe y está bloqueado por un administrador
-    const user = await this.usuariosService.findByUser(usuario);
-    if (!user) {
-      throw new NotFoundException(`Usuario '${usuario}' no encontrado.`);
+  // Obtener incidente por usuario
+  async getIncidentByUser(idusuario: number): Promise<Incident | null> {
+  const usuario = await this.usuariosService.findOne(idusuario); // Aquí usa el nuevo método
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con ID ${idusuario} no encontrado.`);
     }
-  
-    if (user.bloqueado) {
+
+    if (usuario.bloqueado) {
       throw new ForbiddenException('El usuario ha sido bloqueado por un administrador.');
     }
-  
-    // Buscar incidencia asociada al usuario
-    const incident = await this.incidentModel.findOne({ usuario }).exec();
-    if (!incident) {
-      return null; // Devuelve null si no hay incidencia
-    }
-  
-    return incident;
-  }
-  
 
-  // Cerrar una incidencia
+    return await this.incidentRepository.findOne({ where: { usuario } });
+  }
+
+  // Cerrar incidencia
   async closeIncident(closeIncidentDto: CloseIncidentDto): Promise<Incident> {
-    const { usuario } = closeIncidentDto;
-    return this.incidentModel.findOneAndUpdate(
-      { usuario },
-      {
-        status: 'close',
-        failedAttempts: 0,
-        isBlocked: false,
-        blockExpiresAt: null,
-      },
-      { new: true },
-    ).exec();
+    const { idusuario } = closeIncidentDto;
+
+    const incident = await this.incidentRepository.findOne({ where: { usuario: { id: idusuario } } });
+
+    if (!incident) {
+      throw new NotFoundException(`No se encontró un incidente para el usuario con ID ${idusuario}`);
+    }
+
+    incident.state = 'close';
+    incident.failedattempts = 0;
+    incident.isblocked = false;
+    incident.blockexpiresat = null;
+
+    return await this.incidentRepository.save(incident);
   }
 
   // Verificar si el usuario está bloqueado
-  async usernameIsBlocked(usernameIsBlockedDto: UsernameIsBlockedDto): Promise<Incident> {
-    const { usuario } = usernameIsBlockedDto;
-    const incident = await this.incidentModel.findOne({ usuario });
+  async usernameIsBlocked(usernameIsBlockedDto: UsernameIsBlockedDto): Promise<Incident | null> {
+    const { idusuario } = usernameIsBlockedDto;
 
-    if (incident) {
-      const now = new Date();
+    const incident = await this.incidentRepository.findOne({ where: { usuario: { id: idusuario } } });
 
-      // Desbloquear si el tiempo de bloqueo ya pasó
-      if (incident.isBlocked && now >= incident.blockExpiresAt) {
-        incident.isBlocked = false;
-        incident.failedAttempts = 0;
-        incident.blockExpiresAt = null;
-        await incident.save();
-      }
+    if (!incident) {
+      return null;
+    }
+
+    const now = new Date();
+
+    if (incident.isblocked && now >= incident.blockexpiresat) {
+      incident.isblocked = false;
+      incident.failedattempts = 0;
+      incident.blockexpiresat = null;
+      await this.incidentRepository.save(incident);
     }
 
     return incident;

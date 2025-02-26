@@ -1,64 +1,51 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Configuracion, ConfiguracionDocument } from './schemas/configuracion.schema';
+// src/configuracion/configuracion.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Configuracion } from './configuracion.entity';  // Entidad Configuración
+import { UpdateConfiguracionDto, CreateConfiguracionDto } from './dto/create-configuracion.dto';  // DTOs
 
 @Injectable()
 export class ConfiguracionService {
   constructor(
-    @InjectModel(Configuracion.name) private configuracionModel: Model<ConfiguracionDocument>,
+    @InjectRepository(Configuracion)
+    private configuracionRepository: Repository<Configuracion>,  // Inyección del repositorio
   ) {}
 
+  // Obtener la configuración actual
   async getConfiguracion(): Promise<Configuracion> {
-    const config = await this.configuracionModel.findOne().exec();
+    const config = await this.configuracionRepository.findOne({ where: {} });  // Corregido con 'where' para TypeORM >= v0.3.x
     if (!config) {
       throw new NotFoundException('Configuración no encontrada');
     }
     return config;
   }
 
-  // async updateConfiguracion(
-  //   maxFailedAttempts: number,
-  //   lockTimeMinutes: number,
-  // ): Promise<Configuracion> {
-  //   const config = await this.configuracionModel.findOne();
-  //   if (!config) {
-  //     throw new NotFoundException('Configuración no encontrada');
-  //   }
-  //   config.maxFailedAttempts = maxFailedAttempts;
-  //   config.lockTimeMinutes = lockTimeMinutes;
-  //   return config.save();
-  // }
+  // Actualizar la configuración con el DTO de actualización
+  async updateConfiguracion(updateConfiguracionDto: UpdateConfiguracionDto): Promise<Configuracion> {
+    const config = await this.configuracionRepository.findOne({ where: {} });
+    if (!config) {
+      throw new NotFoundException('Configuración no encontrada');
+    }
 
-  async updateConfiguracion(campo: string, valor: string): Promise<Configuracion> {
-    if (!['maxFailedAttempts', 'lockTimeMinutes'].includes(campo)) {
-      throw new BadRequestException(`El campo ${campo} no es válido`);
-    }
-  
-    const updateObject = { [campo]: valor };
-  
-    const perfil = await this.configuracionModel.findOneAndUpdate(
-      {},
-      { $set: updateObject },
-      { new: true, upsert: true }, // Crear si no existe
-    );
-  
-    if (!perfil) {
-      throw new NotFoundException('configuracion de bloqueo por intentos fallidos no encontrada');
-    }
-  
-    return perfil;
+    config.maxFailedAttempts = updateConfiguracionDto.maxFailedAttempts;
+    config.lockTimeMinutes = updateConfiguracionDto.lockTimeMinutes;
+
+    return this.configuracionRepository.save(config);
   }
 
-  // Crear un documento de configuración por defecto (opcional, si no existe)
-  async createDefaultConfiguracion(): Promise<Configuracion> {
-    const existingConfig = await this.configuracionModel.findOne().exec();
+  // Crear una nueva configuración, utilizando el DTO de creación
+  async createConfiguracion(createConfiguracionDto: CreateConfiguracionDto): Promise<Configuracion> {
+    // Comprobamos si ya existe una configuración
+    const existingConfig = await this.configuracionRepository.findOne({ where: {} });
     if (existingConfig) return existingConfig;
 
-    const defaultConfig = new this.configuracionModel({
-      maxFailedAttempts: 5,
-      lockTimeMinutes: 20,
+    // Usamos los valores recibidos en el DTO para crear la configuración
+    const defaultConfig = this.configuracionRepository.create({
+      maxFailedAttempts: createConfiguracionDto?.maxFailedAttempts ?? 5,  // Si no se pasa, usa valor por defecto
+      lockTimeMinutes: createConfiguracionDto?.lockTimeMinutes ?? 20,  // Si no se pasa, usa valor por defecto
     });
-    return defaultConfig.save();
+    
+    return this.configuracionRepository.save(defaultConfig);
   }
 }

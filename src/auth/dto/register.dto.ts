@@ -1,14 +1,15 @@
 import {Prop} from "@nestjs/mongoose";
-import {IsNotEmpty, IsString, IsEmail, MinLength, MaxLength, Matches} from "class-validator";
+import { IsNotEmpty, IsString, IsEmail, MinLength, MaxLength, Matches, IsOptional } from "class-validator";
 
 export class RegisterDto{
-    @Prop({ default: ''})
+    @IsOptional()
+    @IsString()
     sessionId: string; 
 
     @IsNotEmpty()
     @Prop({ required: true})
     @IsEmail({}, { message: "Por favor, ingrese un correo valido" })  
-    correo_Electronico: string;
+    correo_electronico: string;
     
     @IsNotEmpty()
     @Prop({ required: true})
@@ -20,7 +21,7 @@ export class RegisterDto{
     @Prop({ required: true })
     @IsNotEmpty({ message: "Por favor, ingrese su contraseña"})
     @MinLength(6, { message: "La contraseña debe tener al menos 6 caracteres"})
-    contraseña: string;
+    password: string;
 
     @Prop({default: false})
     estado: boolean;
@@ -31,7 +32,7 @@ export class ActivationDto{
 
     @Prop({ required: true })
     @IsEmail({}, { message: "Por favor, proporciona un email válido" })
-    correo_Electronico: string;
+    correo_electronico: string;
 
     @Prop({ required: true })
     @IsString({ message: "Por favor, proporciona un codigo otp valido" })
