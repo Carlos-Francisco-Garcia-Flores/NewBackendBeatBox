@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UploadedFile, UseInterceptors, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UploadedFile,
+  UseInterceptors,
+  UseGuards,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductosService } from './productos.service';
 import { CreateProductoDto, UpdateProductoDto } from './producto.dto';
@@ -26,23 +38,30 @@ export class ProductosController {
   // @UseGuards(AuthGuard('jwt'), RolesGuard)
   // @Roles('admin')
   @Post()
-  @UseInterceptors(FileInterceptor('imagen')) // Permite subir archivos
-  async create(@UploadedFile() imagen: Express.Multer.File, @Body() dto: CreateProductoDto) {
+  @UseInterceptors(FileInterceptor('imagen'))
+  async create(
+    @UploadedFile() imagen: Express.Multer.File,
+    @Body() dto: CreateProductoDto,
+  ) {
     return await this.productosService.create(dto, imagen?.path);
   }
 
   //  Actualizar un producto con nueva imagen
-  // @UseGuards(AuthGuard('jwt'), RolesGuard)
-  // @Roles('admin')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   @Put(':id')
   @UseInterceptors(FileInterceptor('imagen'))
-  async update(@Param('id', ParseUUIDPipe) id: string, @UploadedFile() imagen: Express.Multer.File, @Body() dto: UpdateProductoDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() imagen: Express.Multer.File,
+    @Body() dto: UpdateProductoDto,
+  ) {
     return await this.productosService.update(id, dto, imagen?.path);
   }
 
   //  Eliminar un producto y su imagen de Cloudinary
-  // @UseGuards(AuthGuard('jwt'), RolesGuard)
-  // @Roles('admin')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   @Delete(':id')
   async delete(@Param('id', ParseUUIDPipe) id: string) {
     await this.productosService.delete(id);

@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { CategoriasService } from './categorias.service';
 import { CreateCategoriaDto, UpdateCategoriaDto } from './categoria.dto';
 
@@ -12,7 +21,7 @@ export class CategoriasController {
   }
 
   @Get(':id')
-  async getOne(@Param('id', ParseUUIDPipe) id: string) {
+  async getOne(@Param('id', ParseUUIDPipe) id: number) {
     return await this.categoriasService.findOne(id);
   }
 
@@ -22,12 +31,15 @@ export class CategoriasController {
   }
 
   @Put(':id')
-  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCategoriaDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: number,
+    @Body() dto: UpdateCategoriaDto,
+  ) {
     return await this.categoriasService.update(id, dto);
   }
 
   @Delete(':id')
-  async delete(@Param('id', ParseUUIDPipe) id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: number) {
     await this.categoriasService.delete(id);
     return { message: 'Categoría eliminada correctamente' };
   }

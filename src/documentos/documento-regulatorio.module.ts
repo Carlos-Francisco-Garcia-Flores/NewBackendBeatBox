@@ -7,10 +7,7 @@ import { DocumentoRegulatorio } from './documento-regulatorio.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([DocumentoRegulatorio]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([DocumentoRegulatorio]), AuthModule],
   controllers: [DocumentoRegulatorioController],
   providers: [DocumentoRegulatorioService],
 })

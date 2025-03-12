@@ -9,7 +9,9 @@ describe('DocumentoRegulatorioService', () => {
       providers: [DocumentoRegulatorioService],
     }).compile();
 
-    service = module.get<DocumentoRegulatorioService>(DocumentoRegulatorioService);
+    service = module.get<DocumentoRegulatorioService>(
+      DocumentoRegulatorioService,
+    );
   });
 
   it('should be defined', () => {

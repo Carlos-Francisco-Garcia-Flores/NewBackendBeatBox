@@ -3,18 +3,17 @@ import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
 export class RegisterIncidentDto {
   @IsUUID()
   @IsNotEmpty()
-  idusuario: number;
+  idusuario: string;
 }
 
 export class CloseIncidentDto {
   @IsUUID()
   @IsNotEmpty()
-  idusuario: number;
+  idusuario: string;
 }
 
 export class UsernameIsBlockedDto {
   @IsUUID()
   @IsNotEmpty()
-  idusuario: number;
-
+  idusuario: string;
 }

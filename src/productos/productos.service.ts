@@ -20,28 +20,40 @@ export class ProductosService {
   }
 
   async findOne(id: string): Promise<Producto> {
-    const producto = await this.productoRepository.findOne({ where: { id }, relations: ['categoria'] });
+    const producto = await this.productoRepository.findOne({
+      where: { id },
+      relations: ['categoria'],
+    });
     if (!producto) throw new NotFoundException('Producto no encontrado');
     return producto;
   }
 
   async create(dto: CreateProductoDto, imagen?: string): Promise<Producto> {
-    let idcategoria = null;
+    let idcategoria: number | null = null;
 
     if (dto.categoriaNombre) {
-      const categoria = await this.categoriaRepository.findOne({ where: { nombre: dto.categoriaNombre } });
-      if (!categoria) throw new NotFoundException(`No existe la categoría "${dto.categoriaNombre}"`);
+      const categoria = await this.categoriaRepository.findOne({
+        where: { nombre: dto.categoriaNombre },
+      });
+      if (!categoria)
+        throw new NotFoundException(
+          `No existe la categoría "${dto.categoriaNombre}"`,
+        );
       idcategoria = categoria.id;
     }
 
     let imagenFinal = dto.imagen;
     if (imagen) {
-      const uploadResult = await cloudinary.uploader.upload(imagen, { folder: 'productos' });
+      const uploadResult = await cloudinary.uploader.upload(imagen, {
+        folder: 'productos',
+      });
       imagenFinal = uploadResult.secure_url;
     }
 
     const nuevoProducto = this.productoRepository.create({
       ...dto,
+      precio: Number(dto.precio),
+      existencia: Number(dto.existencia),
       idcategoria,
       imagen: imagenFinal,
     });
@@ -49,23 +61,38 @@ export class ProductosService {
     return await this.productoRepository.save(nuevoProducto);
   }
 
-  async update(id: string, dto: UpdateProductoDto, imagen?: string): Promise<Producto> {
+  async update(
+    id: string,
+    dto: UpdateProductoDto,
+    imagen?: string,
+  ): Promise<Producto> {
     const producto = await this.findOne(id);
 
-    let idcategoria = producto.idcategoria;
+    let idcategoria: number | null = producto.idcategoria;
     if (dto.categoriaNombre) {
-      const categoria = await this.categoriaRepository.findOne({ where: { nombre: dto.categoriaNombre } });
-      if (!categoria) throw new NotFoundException(`No existe la categoría "${dto.categoriaNombre}"`);
+      const categoria = await this.categoriaRepository.findOne({
+        where: { nombre: dto.categoriaNombre },
+      });
+      if (!categoria)
+        throw new NotFoundException(
+          `No existe la categoría "${dto.categoriaNombre}"`,
+        );
       idcategoria = categoria.id;
     }
 
     let imagenFinal = producto.imagen;
     if (imagen) {
-      const uploadResult = await cloudinary.uploader.upload(imagen, { folder: 'productos' });
+      const uploadResult = await cloudinary.uploader.upload(imagen, {
+        folder: 'productos',
+      });
       imagenFinal = uploadResult.secure_url;
     }
 
-    await this.productoRepository.update(id, { ...dto, idcategoria, imagen: imagenFinal });
+    await this.productoRepository.update(id, {
+      ...dto,
+      idcategoria,
+      imagen: imagenFinal,
+    });
     return this.findOne(id);
   }
 
@@ -77,7 +104,9 @@ export class ProductosService {
       try {
         await cloudinary.uploader.destroy(publicId);
       } catch (error) {
-        console.error(`Error al eliminar la imagen de Cloudinary: ${error.message}`);
+        console.error(
+          `Error al eliminar la imagen de Cloudinary: ${error.message}`,
+        );
       }
     }
 
@@ -85,6 +114,7 @@ export class ProductosService {
   }
 
   private extractPublicIdFromUrl(url: string): string | null {
+    if (!url) return null;
     const regex = /\/([^/]+)\.[a-zA-Z]+$/;
     const match = url.match(regex);
     return match ? match[1] : null;

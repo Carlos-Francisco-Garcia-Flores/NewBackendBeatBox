@@ -1,5 +1,12 @@
-import { 
-  Controller, Get, Post, Body, Param, Patch, UseGuards, Delete 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { LogosService } from './logos.service';
 import { AuthGuard } from '@nestjs/passport';

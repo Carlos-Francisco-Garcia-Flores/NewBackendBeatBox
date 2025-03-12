@@ -6,7 +6,8 @@ import { RedSocial } from './red-social.entity';
 @Injectable()
 export class SocialService {
   constructor(
-    @InjectRepository(RedSocial) private redSocialRepository: Repository<RedSocial>, // Usar el repositorio de TypeORM
+    @InjectRepository(RedSocial)
+    private redSocialRepository: Repository<RedSocial>, // Usar el repositorio de TypeORM
   ) {}
 
   // Crear o actualizar una red social
@@ -28,8 +29,11 @@ export class SocialService {
 
   // Obtener una red social por tipo
   async findOne(tipo: string): Promise<RedSocial> {
-    const redSocial = await this.redSocialRepository.findOne({ where: { tipo } });
-    if (!redSocial) throw new NotFoundException(`Red social tipo ${tipo} no encontrada`);
+    const redSocial = await this.redSocialRepository.findOne({
+      where: { tipo },
+    });
+    if (!redSocial)
+      throw new NotFoundException(`Red social tipo ${tipo} no encontrada`);
     return redSocial;
   }
 

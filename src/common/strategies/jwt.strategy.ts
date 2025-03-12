@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             console.error('Token no encontrado en la cookie');
           }
           return token;
-        }
+        },
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
@@ -29,6 +29,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Token JWT inválido');
     }
     console.log('Payload JWT:', payload);
-    return { userId: payload.sub, username: payload.username, role: payload.role };
+    return {
+      userId: payload.sub,
+      username: payload.username,
+      role: payload.role,
+    };
   }
 }

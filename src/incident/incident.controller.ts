@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, UseGuards, Param, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  Param,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { IncidentService } from './incident.service';
 import { CloseIncidentDto, RegisterIncidentDto } from './dto/incident.dto';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -10,34 +19,42 @@ export class IncidentController {
   constructor(private readonly incidentService: IncidentService) {}
 
   @Post('incident')
-  async registerFailedAttempt(@Body() registerIncidentDto: RegisterIncidentDto) {
-    return this.incidentService.loginFailedAttempt(registerIncidentDto.idusuario);
+  async registerFailedAttempt(
+    @Body() registerIncidentDto: RegisterIncidentDto,
+  ) {
+    return this.incidentService.loginFailedAttempt(
+      registerIncidentDto.idusuario,
+    );
   }
-
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Get('incident/:usuario')
-  async getIncidentByUser(@Param('usuario') usuario: number) {
-  try {
-    const incident = await this.incidentService.getIncidentByUser(usuario);
+  async getIncidentByUser(@Param('usuario') usuario: string) {
+    try {
+      console.log(`Buscando incidencia para el usuario: ${usuario}`);
 
-    // Si no existe una incidencia para el usuario
-    if (!incident) {
-      return { message: `No se encontraron incidencias para el usuario '${usuario}'.` };
+      const incident = await this.incidentService.getIncidentByUser(usuario);
+
+      if (!incident) {
+        console.log(`No se encontraron incidencias para el usuario: ${usuario}`);
+        return {
+          message: `No se encontraron incidencias para el usuario '${usuario}'.`,
+        };
+      }
+
+      console.log(`Incidencia encontrada:`, incident);
+      return incident;
+    } catch (error) {
+      console.error(`Error al obtener incidencias:`, error);
+
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+
+      throw new Error(`Error al obtener incidencias: ${error.message}`);
     }
-
-    return incident;
-  } catch (error) {
-    // Manejar errores específicos
-    if (error instanceof NotFoundException || error instanceof ForbiddenException) {
-      throw error;
-    }
-
-    // Manejo genérico de errores
-    throw new Error('Ocurrió un error al obtener las incidencias.');
   }
-}
 
   @Get('open')
   async getOpenIncident() {

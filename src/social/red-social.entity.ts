@@ -11,4 +11,3 @@ export class RedSocial {
   @Column()
   linkRed: string;
 }
- 

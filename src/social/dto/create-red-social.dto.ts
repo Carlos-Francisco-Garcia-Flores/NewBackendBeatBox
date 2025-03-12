@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUrl } from 'class-validator';
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class CreateRedSocialDto {
   @IsNotEmpty()
@@ -6,6 +6,8 @@ export class CreateRedSocialDto {
   tipo: string;
 
   @IsNotEmpty()
-  @IsUrl()
+  @Matches(/^(https?:\/\/)?(www\.)?(facebook|instagram|twitter|x)\.com\/[A-Za-z0-9_.-]+\/?$/, {
+    message: 'El enlace debe ser una URL válida de Facebook, Instagram o Twitter.',
+  })
   linkRed: string;
 }

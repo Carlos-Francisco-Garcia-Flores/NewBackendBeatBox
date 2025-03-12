@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';  // Importar TypeOrmModule
+import { TypeOrmModule } from '@nestjs/typeorm'; // Importar TypeOrmModule
 import { SocialService } from './social.service';
 import { SocialController } from './social.controller';
-import { RedSocial } from './red-social.entity';  // Importar la entidad
+import { RedSocial } from './red-social.entity'; // Importar la entidad
 
 @Module({
   imports: [

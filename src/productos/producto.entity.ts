@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+} from 'typeorm';
 import { Categoria } from '../categorias/categoria.entity';
 
 @Entity('productos')
@@ -22,8 +30,8 @@ export class Producto {
   @JoinColumn({ name: 'idcategoria' })
   categoria: Categoria;
 
-  @Column({ type: 'uuid', nullable: true }) 
-  idcategoria: string;
+  @Column({ type: 'int', nullable: true }) 
+  idcategoria: number;
 
   @Column({ nullable: true })
   imagen: string;

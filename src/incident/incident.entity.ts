@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Usuario } from '../usuarios/usuarios.entity';
 
 @Entity('incidencias')
@@ -6,9 +12,13 @@ export class Incident {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => Usuario, (usuario) => usuario.incidente)
-  @JoinColumn({ name: 'idusuario' }) // Clave foránea hacia usuarios
+  @OneToOne(() => Usuario)
+  @JoinColumn({ name: 'idusuario' })
   usuario: Usuario;
+
+  @Column({ type: 'uuid' }) 
+  idusuario: string;
+
 
   @Column({ default: 0 })
   failedattempts: number;

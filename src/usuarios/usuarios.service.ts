@@ -9,9 +9,7 @@ export class UsuariosService {
     @InjectRepository(Usuario) private usuarioRepository: Repository<Usuario>, // Usar el repositorio de TypeORM
   ) {}
 
-  
-
-  async toggleBloqueo(id: number, bloquear: boolean): Promise<Usuario> {
+  async toggleBloqueo(id: string, bloquear: boolean): Promise<Usuario> {
     const usuario = await this.usuarioRepository.findOne({ where: { id } });
     if (!usuario) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
@@ -24,7 +22,7 @@ export class UsuariosService {
     return this.usuarioRepository.find(); // Obtener todos los usuarios
   }
 
-  async findOne(id: number): Promise<Usuario> {
+  async findOne(id: string): Promise<Usuario> {
     return this.usuarioRepository.findOne({ where: { id } }); // Obtener un usuario por ID
   }
 
@@ -36,12 +34,12 @@ export class UsuariosService {
     return this.usuarioRepository.findOne({ where: { usuario } }); // Buscar por nombre de usuario
   }
 
-  async update(id: number, updateUsuarioDto: any): Promise<Usuario> {
+  async update(id: string, updateUsuarioDto: any): Promise<Usuario> {
     const usuario = await this.usuarioRepository.findOne({ where: { id } });
     if (!usuario) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
-    Object.assign(usuario, updateUsuarioDto);  // Actualiza las propiedades del usuario con los del DTO
+    Object.assign(usuario, updateUsuarioDto); // Actualiza las propiedades del usuario con los del DTO
     return this.usuarioRepository.save(usuario); // Guardar cambios
   }
 

@@ -1,5 +1,12 @@
 import * as bcrypt from 'bcrypt';
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, HttpStatus, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  HttpStatus,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuarios } from './usuario.entity'; // Entidad de usuario en TypeORM
@@ -29,7 +36,7 @@ export class AuthService {
     private emailService: EmailService,
     private pwnedservice: PwnedService,
     private zxcvbnService: ZxcvbnService,
-    private otpService: OtpService
+    private otpService: OtpService,
   ) {}
 
   // Registro de usuario, hasheo de contraseña
@@ -37,7 +44,9 @@ export class AuthService {
     const { sessionId, usuario, password, correo_electronico } = registerDto;
 
     // Verificar si el correo ya está registrado
-    const existingEmail = await this.userRepository.findOne({ where: { correo_electronico } });
+    const existingEmail = await this.userRepository.findOne({
+      where: { correo_electronico },
+    });
     if (existingEmail) {
       throw new BadRequestException({
         message: `El correo electrónico '${correo_electronico}' ya está registrado.`,
@@ -46,7 +55,9 @@ export class AuthService {
     }
 
     // Verificar si el nombre de usuario ya está registrado
-    const existingUser = await this.userRepository.findOne({ where: { usuario } });
+    const existingUser = await this.userRepository.findOne({
+      where: { usuario },
+    });
     if (existingUser) {
       throw new BadRequestException({
         message: `El nombre de usuario '${usuario}' ya está en uso.`,
@@ -64,7 +75,8 @@ export class AuthService {
     }
 
     // Verificar si la contraseña fue comprometida
-    const timesCommitted = await this.pwnedservice.verificationPassword(password);
+    const timesCommitted =
+      await this.pwnedservice.verificationPassword(password);
     if (timesCommitted > 0) {
       throw new BadRequestException({
         message: `La contraseña ya fue comprometida ${timesCommitted} veces`,
@@ -72,7 +84,7 @@ export class AuthService {
       });
     }
 
-    // Hasheo de la contraseña
+    // Hasheo de la contraseña utilizado bcrypt con 10  rondas de procesamiento 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Crear nuevo usuario
@@ -91,7 +103,8 @@ export class AuthService {
 
     return {
       status: HttpStatus.OK,
-      message: 'Gracias por registrarse, hemos enviado un link de activación de cuenta a su correo',
+      message:
+        'Gracias por registrarse, hemos enviado un link de activación de cuenta a su correo',
     };
   }
 
@@ -103,7 +116,9 @@ export class AuthService {
     const user = await this.userRepository.findOne({ where: { usuario } });
 
     if (!user) {
-      throw new ConflictException(`El usuario ${usuario} no está registrado, por favor regístrese`);
+      throw new ConflictException(
+        `Credenciales de inicio de sesión no coiciden o no existen`,
+      );
     }
 
     // Verificar si la cuenta está bloqueada manualmente por un administrador
@@ -120,9 +135,13 @@ export class AuthService {
     }
 
     // Verificar si el usuario ha sido bloqueado debido a incidentes
-    const userIncident = await this.incidentService.usernameIsBlocked({ idusuario: Number(user.id) });
+    const userIncident = await this.incidentService.usernameIsBlocked({
+      idusuario: user.id,
+    });
     if (userIncident && userIncident.isblocked) {
-      const bloqueExpiresAtMexico = new Date(userIncident.blockexpiresat).toLocaleString('es-MX', {
+      const bloqueExpiresAtMexico = new Date(
+        userIncident.blockexpiresat,
+      ).toLocaleString('es-MX', {
         timeZone: 'America/Mexico_City',
         hour: '2-digit',
         minute: '2-digit',
@@ -138,8 +157,10 @@ export class AuthService {
     // Verificar la contraseña
     const isPasswordMatching = await bcrypt.compare(password, user.password);
     if (!isPasswordMatching) {
-      await this.incidentService.loginFailedAttempt(parseInt(user.id, 10));
-      throw new ConflictException('Acceso denegado: Las credenciales son incorrectas');
+      await this.incidentService.loginFailedAttempt(user.id);
+      throw new ConflictException(
+        'Acceso denegado: Las credenciales son incorrectas',
+      );
     }
 
     // Generar nuevo sessionId y guardar el usuario
@@ -157,14 +178,22 @@ export class AuthService {
   async forgot_password(forgotPasswordDto: ForgotPasswordDto): Promise<any> {
     const { correo_electronico } = forgotPasswordDto;
 
-    const user = await this.userRepository.findOne({ where: { correo_electronico } });
+    const user = await this.userRepository.findOne({
+      where: { correo_electronico },
+    });
 
     if (!user) {
       throw new BadRequestException('El correo no está registrado');
     }
 
-    const resetToken = this.jwtService.sign({ id: user.id }, { expiresIn: '1h' });
-    await this.emailService.sendPasswordResetEmail(correo_electronico, resetToken);
+    const resetToken = this.jwtService.sign(
+      { id: user.id },
+      { expiresIn: '1h' },
+    );
+    await this.emailService.sendPasswordResetEmail(
+      correo_electronico,
+      resetToken,
+    );
 
     return { message: 'Se ha enviado un correo con el enlace de recuperación' };
   }
@@ -175,7 +204,9 @@ export class AuthService {
 
     try {
       const decoded = this.jwtService.verify(token);
-      const user = await this.userRepository.findOne({ where: { id: decoded.id } });
+      const user = await this.userRepository.findOne({
+        where: { id: decoded.id },
+      });
 
       if (!user) {
         throw new BadRequestException('Token inválido o expirado');
@@ -210,7 +241,9 @@ export class AuthService {
 
     const isValid = this.otpService.verifyOTP(otp);
     if (isValid) {
-      const user = await this.userRepository.findOne({ where: { correo_electronico } });
+      const user = await this.userRepository.findOne({
+        where: { correo_electronico },
+      });
 
       if (!user) {
         throw new BadRequestException('El correo no está registrado');
@@ -219,10 +252,16 @@ export class AuthService {
       user.estado = true;
       await this.userRepository.save(user);
 
-      return { status: HttpStatus.OK, message: 'Se ha verificado con éxito la cuenta' };
+      return {
+        status: HttpStatus.OK,
+        message: 'Se ha verificado con éxito la cuenta',
+      };
     }
 
-    throw new ConflictException({ message: 'El código es inválido', error: 'Conflict' });
+    throw new ConflictException({
+      message: 'El código es inválido',
+      error: 'Conflict',
+    });
   }
 
   // Revocación de cookies (sesiones)

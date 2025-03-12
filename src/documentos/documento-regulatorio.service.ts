@@ -17,11 +17,16 @@ export class DocumentoRegulatorioService {
     return `${major + 1}.0`; // Incrementa la versión
   }
 
-  async createDocumento(createDocumentoDto: CreateDocumentoDto): Promise<DocumentoRegulatorio> {
+  async createDocumento(
+    createDocumentoDto: CreateDocumentoDto,
+  ): Promise<DocumentoRegulatorio> {
     const { tipo } = createDocumentoDto;
 
     // Cambia cualquier documento vigente del mismo tipo a no vigente
-    await this.documentoRepository.update({ tipo, vigente: true }, { vigente: false });
+    await this.documentoRepository.update(
+      { tipo, vigente: true },
+      { vigente: false },
+    );
 
     // Buscar el documento más reciente del mismo tipo para obtener la última versión
     const ultimoDocumento = await this.documentoRepository
@@ -62,7 +67,10 @@ export class DocumentoRegulatorioService {
     return documento;
   }
 
-  async updateDocumento(id: number, updateDocumentoDto: UpdateDocumentoDto): Promise<DocumentoRegulatorio> {
+  async updateDocumento(
+    id: number,
+    updateDocumentoDto: UpdateDocumentoDto,
+  ): Promise<DocumentoRegulatorio> {
     const documento = await this.documentoRepository.findOne({
       where: { id },
     });

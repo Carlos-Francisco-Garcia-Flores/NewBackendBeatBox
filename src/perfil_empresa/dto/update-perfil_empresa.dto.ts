@@ -1,7 +1,6 @@
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class UpdatePerfilEmpresaDto {
-
   @IsString()
   @IsNotEmpty()
   mision: string;
@@ -13,5 +12,4 @@ export class UpdatePerfilEmpresaDto {
   @IsString()
   @IsOptional() // Permite que sea opcional en la actualización
   logo?: string;
-  
 }

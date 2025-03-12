@@ -1,5 +1,15 @@
 // src/documentos-regulatorios/documento-regulatorio.controller.ts
-import { Controller, Get, Post, Put, Delete, Param, Body, NotFoundException, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  NotFoundException,
+  UseGuards,
+} from '@nestjs/common';
 import { DocumentoRegulatorioService } from './documento-regulatorio.service';
 import { CreateDocumentoDto, UpdateDocumentoDto } from './dto/documento.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -38,7 +48,10 @@ export class DocumentoRegulatorioController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Put(':id')
-  async updateDocumento(@Param('id') id: number, @Body() updateDocumentoDto: UpdateDocumentoDto) {
+  async updateDocumento(
+    @Param('id') id: number,
+    @Body() updateDocumentoDto: UpdateDocumentoDto,
+  ) {
     return this.documentoService.updateDocumento(id, updateDocumentoDto);
   }
 

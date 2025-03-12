@@ -3,8 +3,8 @@ import { Incident } from '../incident/incident.entity';
 
 @Entity('usuarios')
 export class Usuario {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid') // Genera un ID único para cada usuario
+  id: string;
 
   @Column({ unique: true })
   usuario: string;
@@ -28,7 +28,7 @@ export class Usuario {
   bloqueado: boolean;
 
   @Column({ nullable: true })
-  sessionid: string;
+  sessionId: string;
 
   // Relación uno a uno con Incident
   @OneToOne(() => Incident, (incident) => incident.usuario, { cascade: true })

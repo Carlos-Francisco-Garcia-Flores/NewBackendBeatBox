@@ -76,10 +76,14 @@ export class LogosService {
         // Intentar eliminar la imagen de Cloudinary
         const result = await cloudinary.uploader.destroy(publicId);
         if (result.result !== 'ok') {
-          console.warn(`No se pudo eliminar la imagen de Cloudinary con publicId: ${publicId}`);
+          console.warn(
+            `No se pudo eliminar la imagen de Cloudinary con publicId: ${publicId}`,
+          );
         }
       } catch (error) {
-        console.error(`Error al eliminar la imagen de Cloudinary: ${error.message}`);
+        console.error(
+          `Error al eliminar la imagen de Cloudinary: ${error.message}`,
+        );
       }
     }
 

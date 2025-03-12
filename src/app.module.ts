@@ -1,4 +1,9 @@
-import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/common';
+import {
+  Module,
+  MiddlewareConsumer,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -26,9 +31,14 @@ import { Incident } from './incident/incident.entity';
 import { DocumentoRegulatorio } from './documentos/documento-regulatorio.entity';
 import { Configuracion } from './configuracion/configuracion.entity';
 import { Usuarios } from './auth/usuario.entity';
-import { Producto } from './productos//producto.entity';  
-import { Categoria } from './categorias//categoria.entity'; 
+import { Producto } from './productos//producto.entity';
+import { Categoria } from './categorias//categoria.entity';
 import { PerfilUsuarioModule } from './perfil_usuario/perfil_usuario.module';
+
+
+// Servicio de logs
+import { LoggerModule } from './common/logs/logger.module';
+
 
 @Module({
   imports: [
@@ -46,11 +56,18 @@ import { PerfilUsuarioModule } from './perfil_usuario/perfil_usuario.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [
-          Usuario, RedSocial, PerfilEmpresa, Logos, Incident, 
-          DocumentoRegulatorio, Configuracion, Usuarios, 
-          Producto, Categoria  
+          Usuario,
+          RedSocial,
+          PerfilEmpresa,
+          Logos,
+          Incident,
+          DocumentoRegulatorio,
+          Configuracion,
+          Usuarios,
+          Producto,
+          Categoria,
         ],
-        synchronize: false,  //  usar migraciones en lugar de synchronize en producción
+        synchronize: false, //  usar migraciones en lugar de synchronize en producción
         dropSchema: false,
         migrationsRun: true, // Aplica migraciones automáticamente
       }),
@@ -65,16 +82,17 @@ import { PerfilUsuarioModule } from './perfil_usuario/perfil_usuario.module';
       IncidentModule,
       ConfiguracionModule,
       LogosModule,
-      ProductosModule,   
-      CategoriasModule, 
-      
+      ProductosModule,
+      CategoriasModule,
+      LoggerModule,
+      PerfilUsuarioModule,
     ],
-    PerfilUsuarioModule,
-
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorsMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL });
+    consumer
+      .apply(CorsMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

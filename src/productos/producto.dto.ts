@@ -1,4 +1,13 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsPositive, Min, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  IsPositive,
+  Min,
+  MaxLength,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductoDto {
   @IsNotEmpty()
@@ -10,19 +19,23 @@ export class CreateProductoDto {
   @IsString()
   descripcion?: string;
 
+  
   @IsNotEmpty()
-  @IsNumber()
-  @IsPositive()
+  @Type(() => Number) // 🔹 Esto convierte el precio a número
+  @IsNumber({}, { message: 'El precio debe ser un número' })
+  @IsPositive({ message: 'El precio debe ser mayor a 0' })
   precio: number;
 
   @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
+  @Type(() => Number) // 🔹 Esto convierte la existencia a número
+  @IsNumber({}, { message: 'La existencia debe ser un número' })
+  @Min(0, { message: 'La existencia no puede ser menor a 0' })
   existencia: number;
+
 
   @IsOptional()
   @IsString()
-  categoriaNombre?: string; 
+  categoriaNombre?: string;
 
   @IsOptional()
   @IsString()

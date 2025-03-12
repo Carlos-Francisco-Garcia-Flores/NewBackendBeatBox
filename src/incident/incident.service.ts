@@ -1,29 +1,36 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Incident } from './incident.entity';
-import { UsuariosService } from '../usuarios/usuarios.service'; // Importar el servicio
+import { UsuariosService } from '../usuarios/usuarios.service';
 import { CloseIncidentDto, UsernameIsBlockedDto } from './dto/incident.dto';
 
 @Injectable()
 export class IncidentService {
   constructor(
-    @InjectRepository(Incident) private readonly incidentRepository: Repository<Incident>,
-    private readonly usuariosService: UsuariosService,  // Usar el servicio en lugar del repositorio
+    @InjectRepository(Incident)
+    private readonly incidentRepository: Repository<Incident>,
+    private readonly usuariosService: UsuariosService, 
   ) {}
 
   // Registrar un intento fallido
-  async loginFailedAttempt(idusuario: number): Promise<Incident> {
+  async loginFailedAttempt(idusuario: string): Promise<Incident> {
     const usuario = await this.usuariosService.findOne(idusuario); // Usar el servicio para buscar el usuario
 
     if (!usuario) {
       throw new NotFoundException(`Usuario con ID ${idusuario} no encontrado.`);
     }
 
-    let incident = await this.incidentRepository.findOne({ where: { usuario } });
+    let incident = await this.incidentRepository.findOne({
+      where: { usuario },
+    });
 
     const now = new Date();
-    const maxFailedAttempts = 5; // Puedes traerlo de la configuración
+    const maxFailedAttempts = 5; 
     const lockTimeMinutes = 10;
 
     if (!incident) {
@@ -56,7 +63,9 @@ export class IncidentService {
       // Bloquear si excede el límite
       if (incident.failedattempts >= maxFailedAttempts) {
         incident.isblocked = true;
-        incident.blockexpiresat = new Date(now.getTime() + lockTimeMinutes * 60 * 1000);
+        incident.blockexpiresat = new Date(
+          now.getTime() + lockTimeMinutes * 60 * 1000,
+        );
       }
     }
 
@@ -69,28 +78,46 @@ export class IncidentService {
   }
 
   // Obtener incidente por usuario
-  async getIncidentByUser(idusuario: number): Promise<Incident | null> {
-  const usuario = await this.usuariosService.findOne(idusuario); // Aquí usa el nuevo método
-
+  async getIncidentByUser(idusuario: string): Promise<Incident | null> {
+    console.log(`Buscando usuario con ID: ${idusuario}`);
+    
+    const usuario = await this.usuariosService.findOne(idusuario);
+  
     if (!usuario) {
+      console.log(`Usuario con ID ${idusuario} no encontrado.`);
       throw new NotFoundException(`Usuario con ID ${idusuario} no encontrado.`);
     }
-
+  
+    console.log(`Usuario encontrado:`, usuario);
+  
     if (usuario.bloqueado) {
-      throw new ForbiddenException('El usuario ha sido bloqueado por un administrador.');
+      console.log(`Usuario ${idusuario} está bloqueado.`);
+      throw new ForbiddenException(
+        'El usuario ha sido bloqueado por un administrador.',
+      );
     }
-
-    return await this.incidentRepository.findOne({ where: { usuario } });
+  
+    const incident = await this.incidentRepository.findOne({
+      where: { usuario: { id: idusuario } },
+    });
+  
+    console.log(`Incidencia encontrada:`, incident);
+  
+    return incident;
   }
 
   // Cerrar incidencia
   async closeIncident(closeIncidentDto: CloseIncidentDto): Promise<Incident> {
     const { idusuario } = closeIncidentDto;
 
-    const incident = await this.incidentRepository.findOne({ where: { usuario: { id: idusuario } } });
+    const incident = await this.incidentRepository.findOne({
+      where: { usuario: { id: idusuario } },
+    });
 
     if (!incident) {
-      throw new NotFoundException(`No se encontró un incidente para el usuario con ID ${idusuario}`);
+      throw new NotFoundException(
+        `No se encontró un incidente para el usuario con ID ${idusuario}`,
+      );
     }
 
     incident.state = 'close';
@@ -102,10 +129,14 @@ export class IncidentService {
   }
 
   // Verificar si el usuario está bloqueado
-  async usernameIsBlocked(usernameIsBlockedDto: UsernameIsBlockedDto): Promise<Incident | null> {
+  async usernameIsBlocked(
+    usernameIsBlockedDto: UsernameIsBlockedDto,
+  ): Promise<Incident | null> {
     const { idusuario } = usernameIsBlockedDto;
 
-    const incident = await this.incidentRepository.findOne({ where: { usuario: { id: idusuario } } });
+    const incident = await this.incidentRepository.findOne({
+      where: { usuario: { id: idusuario } },
+    });
 
     if (!incident) {
       return null;

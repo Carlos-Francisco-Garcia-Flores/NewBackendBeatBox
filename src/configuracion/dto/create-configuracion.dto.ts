@@ -13,13 +13,12 @@ export class CreateConfiguracionDto {
   lockTimeMinutes: number;
 }
 
-
 export class UpdateConfiguracionDto {
-    @IsInt()
-    @IsPositive()
-    maxFailedAttempts: number;
-  
-    @IsInt()
-    @IsPositive()
-    lockTimeMinutes: number;
-  }
+  @IsInt()
+  @IsPositive()
+  maxFailedAttempts: number;
+
+  @IsInt()
+  @IsPositive()
+  lockTimeMinutes: number;
+}

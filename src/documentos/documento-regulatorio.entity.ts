@@ -1,5 +1,11 @@
 // src/documentos-regulatorios/entities/documento-regulatorio.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, UpdateDateColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  UpdateDateColumn,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity('documentosregulatorios') // Nombre de la tabla en PostgreSQL
 export class DocumentoRegulatorio {

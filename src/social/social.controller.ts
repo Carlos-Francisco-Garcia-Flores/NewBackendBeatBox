@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { SocialService } from './social.service';
 import { RedSocial } from './red-social.entity';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -6,7 +14,7 @@ import { CreateRedSocialDto } from './dto/create-red-social.dto';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('social')  //ruta base
+@Controller('social') //ruta base
 export class SocialController {
   constructor(private readonly socialService: SocialService) {}
 
@@ -14,8 +22,13 @@ export class SocialController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Post('agregar')
-  async createOrUpdate(@Body() createRedSocialDto: CreateRedSocialDto): Promise<RedSocial> {
-    return this.socialService.createOrUpdate(createRedSocialDto.tipo, createRedSocialDto.linkRed);
+  async createOrUpdate(
+    @Body() createRedSocialDto: CreateRedSocialDto,
+  ): Promise<RedSocial> {
+    return this.socialService.createOrUpdate(
+      createRedSocialDto.tipo,
+      createRedSocialDto.linkRed,
+    );
   }
 
   // Ruta para obtener todas las redes sociales

@@ -17,8 +17,14 @@ export class CorsMiddleware implements NestMiddleware {
       res.setHeader('Access-Control-Allow-Credentials', 'true'); // Permitir cookies
     }
 
-    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    );
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Accept, Authorization',
+    );
 
     if (req.method === 'OPTIONS') {
       return res.status(204).send(); // Responder con 204 No Content para preflight requests
