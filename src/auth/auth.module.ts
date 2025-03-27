@@ -11,13 +11,14 @@ import { OtpService } from '../services/otp.service';
 import { PwnedService } from '../services/pwned.service';
 import { ZxcvbnService } from '../services/zxcvbn.service';
 import { IncidentModule } from '../incident/incident.module';
-import { JwtStrategy } from '../common/strategies/jwt.strategy'; // Importar JwtStrategy
-import { LoggerModule } from '../common/logs/logger.module'; // Importar LoggerModule
+import { JwtStrategy } from '../common/strategies/jwt.strategy';
+import { LoggerModule } from '../common/logs/logger.module'; 
+import { PreguntasSecretas } from '../preguntas_secretas/preguntas-secretas.entity'; 
 
 @Module({
   imports: [
     HttpModule,
-    TypeOrmModule.forFeature([Usuarios]), // Usar TypeOrmModule para la entidad 'Usuarios'
+    TypeOrmModule.forFeature([Usuarios, PreguntasSecretas]), // Usar TypeOrmModule para la entidad 'Usuarios'
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

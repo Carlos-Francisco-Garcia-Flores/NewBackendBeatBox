@@ -3,36 +3,46 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Usuarios } from '../../auth/usuario.entity'; // Entidad de usuario en TypeORM
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @InjectRepository(Usuarios) private userRepository: Repository<Usuarios>,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => {
-          const token = request?.cookies?.auth_token;
-          if (!token) {
-            console.error('Token no encontrado en la cookie');
-          }
-          return token;
-        },
+        (request: Request) => request?.cookies?.auth_token,
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
   }
 
-  // Método que valida el token JWT y retorna el payload decodificado
   async validate(payload: any) {
     if (!payload) {
-      console.error('Token inválido o no proporcionado');
       throw new UnauthorizedException('Token JWT inválido');
     }
-    console.log('Payload JWT:', payload);
-    return {
-      userId: payload.sub,
-      username: payload.username,
-      role: payload.role,
-    };
-  }
+
+    // Buscar al usuario en la base de datos
+    const user = await this.userRepository.findOne({ where: { id: payload.sub } });
+
+      if (!user) {
+        throw new UnauthorizedException('Usuario no encontrado');
+      }
+
+      // Verificar si la sesión ha expirado
+      if (user.sessionexpiredat && user.sessionexpiredat < new Date()) {
+        throw new UnauthorizedException('La sesión ha expirado. Inicie sesión nuevamente.');
+      }
+
+  return {
+    userId: user.id,
+    username: user.usuario,
+    role: user.role,
+  };
+}
 }

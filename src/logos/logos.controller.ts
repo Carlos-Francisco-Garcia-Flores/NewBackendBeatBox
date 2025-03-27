@@ -7,23 +7,30 @@ import {
   Patch,
   UseGuards,
   Delete,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { LogosService } from './logos.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { CreateLogoDto } from './create-logo.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
 
 @Controller('logos')
 export class LogosController {
   constructor(private readonly logosService: LogosService) {}
 
-  // Crear un nuevo logo
+  // Crear un nuevo logo (subiendo archivo a Cloudinary)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Post()
-  async create(@Body() createLogoDto: CreateLogoDto) {
-    return this.logosService.create(createLogoDto);
+  async create(@Body() body: { link: string }) {
+    if (!body.link) {
+      throw new BadRequestException('Se requiere una URL de imagen.');
+    }
+    return this.logosService.create(body.link);
   }
 
   // Obtener todos los logos
@@ -53,7 +60,14 @@ export class LogosController {
   @Roles('admin')
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    await this.logosService.delete(id);
-    return { message: `Logo con ID ${id} eliminado correctamente.` };
+    const parsedId = Number(id);
+    
+    if (isNaN(parsedId)) {
+      throw new BadRequestException('El ID proporcionado no es un número válido.');
+    }
+
+    await this.logosService.delete(parsedId);
+
+    return { message: `Logo con ID ${parsedId} eliminado correctamente.` };
   }
 }

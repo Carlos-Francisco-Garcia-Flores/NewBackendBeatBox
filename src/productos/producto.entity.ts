@@ -1,13 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  CreateDateColumn,
-  UpdateDateColumn,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable, JoinColumn } from 'typeorm';
 import { Categoria } from '../categorias/categoria.entity';
+import { Subcategoria } from '../subcategorias/subcategoria.entity';
 
 @Entity('productos')
 export class Producto {
@@ -26,12 +19,19 @@ export class Producto {
   @Column('int')
   existencia: number;
 
+  // Relación ManyToOne para la categoría
   @ManyToOne(() => Categoria, { nullable: true })
-  @JoinColumn({ name: 'idcategoria' })
+  @JoinColumn({ name: 'idcategoria' }) // Asegúrate de que el nombre de la columna sea 'categoriaid'
   categoria: Categoria;
 
-  @Column({ type: 'int', nullable: true }) 
-  idcategoria: number;
+  // Relación ManyToMany para las subcategorías
+  @ManyToMany(() => Subcategoria)
+  @JoinTable({
+    name: 'producto_subcategoria', // Nombre de la tabla intermedia
+    joinColumn: { name: 'producto_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'subcategoria_id', referencedColumnName: 'id' },
+  })
+  subcategorias: Subcategoria[];
 
   @Column({ nullable: true })
   imagen: string;

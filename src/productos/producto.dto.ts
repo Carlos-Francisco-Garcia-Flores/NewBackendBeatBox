@@ -6,6 +6,8 @@ import {
   IsPositive,
   Min,
   MaxLength,
+  IsArray,
+  IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -19,19 +21,18 @@ export class CreateProductoDto {
   @IsString()
   descripcion?: string;
 
-  
   @IsNotEmpty()
-  @Type(() => Number) // 🔹 Esto convierte el precio a número
-  @IsNumber({}, { message: 'El precio debe ser un número' })
-  @IsPositive({ message: 'El precio debe ser mayor a 0' })
+  @IsNumber()
   precio: number;
 
   @IsNotEmpty()
-  @Type(() => Number) // 🔹 Esto convierte la existencia a número
-  @IsNumber({}, { message: 'La existencia debe ser un número' })
-  @Min(0, { message: 'La existencia no puede ser menor a 0' })
+  @IsNumber()
   existencia: number;
 
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  subcategorias?: number[]; // IDs de las subcategorías que se asignarán
 
   @IsOptional()
   @IsString()
@@ -41,5 +42,6 @@ export class CreateProductoDto {
   @IsString()
   imagen?: string;
 }
+
 
 export class UpdateProductoDto extends CreateProductoDto {}

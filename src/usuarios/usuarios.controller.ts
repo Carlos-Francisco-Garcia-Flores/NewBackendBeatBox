@@ -7,6 +7,7 @@ import {
   Delete,
   UseGuards,
   NotFoundException,
+  Req,
 } from '@nestjs/common';
 
 import { UsuariosService } from './usuarios.service';
@@ -56,4 +57,19 @@ export class UsuariosController {
   async remove(@Param('id') id: number) {
     return this.usuariosService.delete(id);
   }
+
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard) // Protección con JWT y Roles
+  @Roles('admin') // Solo admins pueden cambiar roles
+  @Patch(':id/role')
+  async updateRole(
+    @Param('id') id: string,
+    @Body() body: { newRole: string },
+    @Req() req: Request,
+  ) {
+    return this.usuariosService.updateRole(id, body.newRole, req);
+  }
+
 }
+
+

@@ -21,6 +21,9 @@ import { ConfiguracionModule } from './configuracion/configuracion.module';
 import { LogosModule } from './logos/logos.module';
 import { ProductosModule } from './productos/productos.module';
 import { CategoriasModule } from './categorias/categorias.module';
+import { PerfilUsuarioModule } from './perfil_usuario/perfil_usuario.module';
+import {PreguntasSecretasModule} from './preguntas_secretas/preguntas_secretas.module';
+import { SubcategoriasModule } from './subcategorias/subcategorias.module';
 
 // Entidades
 import { Usuario } from './usuarios/usuarios.entity';
@@ -32,9 +35,9 @@ import { DocumentoRegulatorio } from './documentos/documento-regulatorio.entity'
 import { Configuracion } from './configuracion/configuracion.entity';
 import { Usuarios } from './auth/usuario.entity';
 import { Producto } from './productos//producto.entity';
-import { Categoria } from './categorias//categoria.entity';
-import { PerfilUsuarioModule } from './perfil_usuario/perfil_usuario.module';
-
+import { Categoria } from './categorias/categoria.entity';
+import {Subcategoria} from './subcategorias/subcategoria.entity'
+import {PreguntasSecretas} from './preguntas_secretas/preguntas-secretas.entity';
 
 // Servicio de logs
 import { LoggerModule } from './common/logs/logger.module';
@@ -66,10 +69,12 @@ import { LoggerModule } from './common/logs/logger.module';
           Usuarios,
           Producto,
           Categoria,
+          PreguntasSecretas,
+          Subcategoria,
         ],
-        synchronize: false, //  usar migraciones en lugar de synchronize en producción
+        synchronize: false, 
         dropSchema: false,
-        migrationsRun: true, // Aplica migraciones automáticamente
+        migrationsRun: true,
       }),
       inject: [ConfigService],
     }),
@@ -87,6 +92,8 @@ import { LoggerModule } from './common/logs/logger.module';
       LoggerModule,
       PerfilUsuarioModule,
     ],
+    PreguntasSecretasModule,
+    SubcategoriasModule,
   ],
 })
 export class AppModule implements NestModule {

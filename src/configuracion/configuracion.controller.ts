@@ -1,10 +1,10 @@
 // src/configuracion/configuracion.controller.ts
-import { Body, Controller, Get, Put, Post, UseGuards } from '@nestjs/common';
+import { Body, Param, Controller, Get, Put, Post, UseGuards, BadRequestException} from '@nestjs/common';
 import { ConfiguracionService } from './configuracion.service';
 import {
   UpdateConfiguracionDto,
   CreateConfiguracionDto,
-} from './dto/create-configuracion.dto';
+} from './create-configuracion.dto';
 import { AuthGuard } from '@nestjs/passport'; // Guard para verificar que el usuario esté autenticado
 import { RolesGuard } from '../common/guards/roles.guard'; // Guard para verificar los roles de usuario
 import { Roles } from '../common/decorators/roles.decorator'; // Decorador para asignar roles a las rutas
@@ -18,8 +18,8 @@ export class ConfiguracionController {
    * Obtener configuración actual.
    * Esta ruta solo es accesible para usuarios con rol 'admin'.
    */
-  // @UseGuards(AuthGuard('jwt'), RolesGuard)
-  // @Roles('admin') // Solo los usuarios con rol 'admin' pueden acceder
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin') // Solo los usuarios con rol 'admin' pueden acceder
   @Get() // Método GET para obtener la configuración
   async getConfiguracion(): Promise<Configuracion> {
     // Llama al servicio para obtener la configuración
@@ -48,13 +48,17 @@ export class ConfiguracionController {
    */
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin') // Solo los usuarios con rol 'admin' pueden acceder
-  @Put() // Método PUT para actualizar la configuración
+  @Put(':campo') // Aquí definimos el campo como parámetro en la ruta
   async updateConfiguracion(
-    @Body() updateConfiguracionDto: UpdateConfiguracionDto, // Recibe el DTO con los nuevos datos de configuración
+    @Param('campo') campo: string, // Recibimos el campo de la ruta
+    @Body() updateConfiguracionDto: UpdateConfiguracionDto, // Recibimos el DTO con los nuevos valores
   ): Promise<Configuracion> {
-    // Llama al servicio para actualizar la configuración
-    return this.configuracionService.updateConfiguracion(
-      updateConfiguracionDto,
-    );
+    // Verificamos si el campo es uno de los permitidos
+    if (!['maxFailedAttempts', 'lockTimeMinutes'].includes(campo)) {
+      throw new BadRequestException(`El campo ${campo} no es válido`);
+    }
+
+    // Llamamos al servicio para actualizar la configuración
+    return this.configuracionService.updateConfiguracion(campo, updateConfiguracionDto);
   }
 }

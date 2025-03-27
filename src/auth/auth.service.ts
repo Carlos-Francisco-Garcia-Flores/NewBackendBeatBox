@@ -6,12 +6,13 @@ import {
   Injectable,
   HttpStatus,
   UnauthorizedException,
+  Req,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuarios } from './usuario.entity'; // Entidad de usuario en TypeORM
 import { JwtService } from '@nestjs/jwt';
-import { ForgotPasswordDto, ResetPasswordDto } from './dto/resetPassword.dto';
+import { ForgotPasswordDto, ResetPasswordDto, VerifySecretAnswerDto, VerifyUsernameDto } from './dto/resetPassword.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto, ActivationDto } from './dto/register.dto';
 import { EmailService } from '../services/email.service';
@@ -22,26 +23,38 @@ import { IncidentService } from '../incident/incident.service';
 import * as jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { randomBytes } from 'crypto';
-
+import { PreguntasSecretas } from '../preguntas_secretas/preguntas-secretas.entity';
+import { LoggService } from '../common/logs/logger.service'; 
 @Injectable()
 export class AuthService {
+
   private generateSessionID(): string {
     return randomBytes(32).toString('hex');
   }
 
   constructor(
     @InjectRepository(Usuarios) private userRepository: Repository<Usuarios>,
+    @InjectRepository(PreguntasSecretas) private readonly preguntasSecretasRepository: Repository<PreguntasSecretas>,
+
     private jwtService: JwtService,
     private incidentService: IncidentService,
     private emailService: EmailService,
     private pwnedservice: PwnedService,
     private zxcvbnService: ZxcvbnService,
     private otpService: OtpService,
+    private readonly logger: LoggService, 
   ) {}
 
   // Registro de usuario, hasheo de contraseña
   async register(registerDto: RegisterDto): Promise<any> {
-    const { sessionId, usuario, password, correo_electronico } = registerDto;
+    const { 
+      sessionId, 
+      usuario, 
+      password, 
+      correo_electronico, 
+      preguntaSecretaId, 
+      preguntaSrespuesta 
+          } = registerDto;
 
     // Verificar si el correo ya está registrado
     const existingEmail = await this.userRepository.findOne({
@@ -49,7 +62,7 @@ export class AuthService {
     });
     if (existingEmail) {
       throw new BadRequestException({
-        message: `El correo electrónico '${correo_electronico}' ya está registrado.`,
+        message: `El correo electrónico no es valido.`,
         error: 'Conflict',
       });
     }
@@ -62,6 +75,17 @@ export class AuthService {
       throw new BadRequestException({
         message: `El nombre de usuario '${usuario}' ya está en uso.`,
         error: 'Conflict',
+      });
+    }
+
+    // Verificar si la pregunta secreta existe
+    const preguntaSecreta = await this.preguntasSecretasRepository.findOne({
+      where: { id: preguntaSecretaId },
+    });
+    if (!preguntaSecreta) {
+      throw new BadRequestException({
+        message: `La pregunta secreta seleccionada no es válida.`,
+        error: 'BadRequest',
       });
     }
 
@@ -84,15 +108,19 @@ export class AuthService {
       });
     }
 
+
     // Hasheo de la contraseña utilizado bcrypt con 10  rondas de procesamiento 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedQuestionS = await bcrypt.hash(preguntaSrespuesta, 10)
 
     // Crear nuevo usuario
     const newUser = this.userRepository.create({
-      sessionId: sessionId,
+      sessionId,
       usuario,
       password: hashedPassword,
       correo_electronico,
+      preguntaSecreta,  
+      preguntaSrespuesta: hashedQuestionS,
     });
 
     // Enviar correo de verificación
@@ -109,72 +137,69 @@ export class AuthService {
   }
 
   // Login de usuario
-  async login(loginDto: LoginDto): Promise<{ token: string }> {
-    const { usuario, password } = loginDto;
-
+  async login(loginDto: LoginDto, @Req() req: Request): Promise<{ token: string }> {
+    const { usuarioOEmail, password } = loginDto;
+  
     const sessionId = this.generateSessionID();
-    const user = await this.userRepository.findOne({ where: { usuario } });
+
+    // Buscar usuario por usuario O correo electrónico
+    const user = await this.userRepository.findOne({
+      where: [
+        { usuario: usuarioOEmail },
+        { correo_electronico: usuarioOEmail }
+      ],
+    });
 
     if (!user) {
-      throw new ConflictException(
-        `Credenciales de inicio de sesión no coiciden o no existen`,
-      );
+      throw new UnauthorizedException('Credenciales incorrectas');
     }
 
-    // Verificar si la cuenta está bloqueada manualmente por un administrador
     if (user.bloqueado) {
-      throw new ForbiddenException(
-        'Su cuenta ha sido bloqueada por los administradores. En caso de ser necesario comuníquese con soporte técnico.',
-      );
+      throw new ForbiddenException('Su cuenta ha sido bloqueada. Contacte a soporte.');
     }
 
     if (!user.estado) {
-      throw new ForbiddenException(
-        'Estimado usuario, le solicitamos que verifique su cuenta para habilitar el acceso a nuestros servicios.',
-      );
+      throw new ForbiddenException('Debe verificar su cuenta antes de iniciar sesión.');
     }
 
-    // Verificar si el usuario ha sido bloqueado debido a incidentes
-    const userIncident = await this.incidentService.usernameIsBlocked({
-      idusuario: user.id,
-    });
-    if (userIncident && userIncident.isblocked) {
-      const bloqueExpiresAtMexico = new Date(
-        userIncident.blockexpiresat,
-      ).toLocaleString('es-MX', {
+    const userIncident = await this.incidentService.usernameIsBlocked({ idusuario: user.id });
+    if (userIncident?.isblocked) {
+      const bloqueExpiresAtMexico = new Date(userIncident.blockexpiresat).toLocaleString('es-MX', {
         timeZone: 'America/Mexico_City',
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: false,
+        hour12: true,
       });
 
-      throw new ForbiddenException(
-        `Su cuenta ha sido bloqueada temporalmente. Podrá acceder nuevamente a las ${bloqueExpiresAtMexico}.`,
-      );
+      throw new ForbiddenException(`Su cuenta está bloqueada hasta las ${bloqueExpiresAtMexico}`);
     }
 
-    // Verificar la contraseña
     const isPasswordMatching = await bcrypt.compare(password, user.password);
     if (!isPasswordMatching) {
-      await this.incidentService.loginFailedAttempt(user.id);
-      throw new ConflictException(
-        'Acceso denegado: Las credenciales son incorrectas',
-      );
+      await this.incidentService.loginFailedAttempt(user.id, req);
+      throw new UnauthorizedException('Credenciales incorrectas');
     }
 
-    // Generar nuevo sessionId y guardar el usuario
-    user.sessionId = sessionId;
-    await this.userRepository.save(user);
+    const sessionExpired = user.sessionexpiredat && new Date(user.sessionexpiredat) < new Date();
 
-    // Generar JWT
-    const payload = { username: user.usuario, sub: user.id, role: user.role };
-    const token = this.jwtService.sign(payload);
+    if (user.sessionId && !sessionExpired) {
+      throw new ForbiddenException('Ya hay una sesión activa en otro dispositivo. Cierra sesión antes de volver a ingresar.');
+    }
 
-    return { token };
-  }
+  user.sessionId = sessionId;
+  user.sessionexpiredat = new Date(Date.now() + 3600000); // Expira en 1 hora (3600000 ms)
+  await this.userRepository.save(user);
 
-  // Olvidar Contraseña
+  const payload = { username: user.usuario, sub: user.id, role: user.role, sessionId: user.sessionId };
+  const token = this.jwtService.sign(payload, {
+    expiresIn: '1h', // El token expirará en 1 hora
+  });
+  return { token };
+}
+
+
+  // Olvide Contraseña
   async forgot_password(forgotPasswordDto: ForgotPasswordDto): Promise<any> {
     const { correo_electronico } = forgotPasswordDto;
 
@@ -198,6 +223,61 @@ export class AuthService {
     return { message: 'Se ha enviado un correo con el enlace de recuperación' };
   }
 
+
+  // Recuperar contraseña usando pregunta secreta
+  async getSecretQuestionByUsername(dto: VerifyUsernameDto): Promise<any> {
+    const { usuario } = dto;
+  
+    // Buscar usuario por nombre de usuario
+    const user = await this.userRepository.findOne({ where: { usuario } });
+
+  
+    if (!user) {
+      throw new BadRequestException('El usuario no está registrado.');
+    }
+  
+    if (!user.preguntaSecreta) {
+      throw new BadRequestException('Este usuario no tiene pregunta secreta asignada.');
+    }
+  
+    return {
+      preguntaSecreta: user.preguntaSecreta,
+    };
+  }
+
+  async verifySecretAnswer(VerifySecretAnswerDto: VerifySecretAnswerDto): Promise<any> {
+    const { usuario, preguntaSrespuesta } = VerifySecretAnswerDto;
+  
+    // Buscar usuario por nombre
+    const user = await this.userRepository.findOne({
+      where: { usuario },
+      relations: ['preguntaSecreta'],
+    });
+  
+    if (!user) {
+      throw new BadRequestException('El usuario no está registrado.');
+    }
+  
+    // Verificar que tenga pregunta secreta
+    if (!user.preguntaSecreta) {
+      throw new BadRequestException('Este usuario no tiene pregunta secreta asignada.');
+    }
+  
+    // Comparar respuesta encriptada
+    const isMatch = await bcrypt.compare(preguntaSrespuesta, user.preguntaSrespuesta);
+    if (!isMatch) {
+      throw new BadRequestException('La respuesta a la pregunta secreta es incorrecta.');
+    }
+  
+    // Generar token de recuperación
+    const resetToken = this.jwtService.sign({ id: user.id }, { expiresIn: '1h' });
+  
+    // Enviar correo con el token
+    await this.emailService.sendPasswordResetEmail(user.correo_electronico, resetToken);
+  
+    return { message: 'Se ha enviado un correo con el enlace de recuperación' };
+  }
+
   // Restablecer Contraseña
   async reset_password(resetPasswordDto: ResetPasswordDto): Promise<any> {
     const { token, new_password } = resetPasswordDto;
@@ -217,6 +297,8 @@ export class AuthService {
 
       await this.userRepository.save(user);
       await this.revokeSessions(user.id);
+
+      this.logger.log(`Contraseña restablecida para el usuario: ${user.usuario}`);
 
       return { message: 'Contraseña actualizada exitosamente' };
     } catch (err) {

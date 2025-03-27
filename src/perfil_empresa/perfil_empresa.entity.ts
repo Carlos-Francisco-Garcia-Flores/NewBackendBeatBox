@@ -3,7 +3,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Logos } from '../logos/logos.entity';
 
 @Entity('perfilempresa') // Nombre de la tabla en la BD
 export class PerfilEmpresa {
@@ -11,17 +14,15 @@ export class PerfilEmpresa {
   id: number;
 
   @Column({ type: 'text' })
-  eslogan: string;
-
-  @Column({ type: 'text' })
   mision: string;
 
   @Column({ type: 'text' })
   vision: string;
 
-  @Column({ type: 'text', nullable: true })
-  logo: string;
+  @OneToOne(() => Logos) // Relación 1:1 con Logos
+  @JoinColumn({ name: 'idlogo' }) // Se usa JoinColumn en relaciones 1:1
+  idlogo: Logos;
 
   @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt: Date;
+  updatedat: Date;
 }

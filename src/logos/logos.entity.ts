@@ -4,12 +4,14 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
+import { PerfilEmpresa } from '../perfil_empresa/perfil_empresa.entity';
 
 @Entity('logos')
 export class Logos {
   @PrimaryGeneratedColumn()
-  id: string;
+  id: number;
 
   @Column({ type: 'text', nullable: false })
   link: string;
@@ -22,4 +24,7 @@ export class Logos {
 
   @UpdateDateColumn({ name: 'updatedat' })
   updatedAt: Date;
+
+  @OneToOne(() => PerfilEmpresa, (perfilEmpresa) => perfilEmpresa.idlogo)
+  perfilEmpresa: PerfilEmpresa;
 }

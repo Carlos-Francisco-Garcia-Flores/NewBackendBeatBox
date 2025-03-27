@@ -4,6 +4,7 @@ import { PerfilEmpresa } from './perfil_empresa.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { UpdatePerfilEmpresaDto } from './update-perfil_empresa.dto';
 
 @Controller('perfil-empresa')
 export class PerfilEmpresaController {
@@ -19,8 +20,12 @@ export class PerfilEmpresaController {
   @Put(':campo')
   async actualizarCampo(
     @Param('campo') campo: string,
-    @Body('valor') valor: string,
-  ): Promise<PerfilEmpresa> {
-    return this.perfilEmpresaService.actualizarCampo(campo, valor);
+    @Body() updatePerfilEmpresaDto: UpdatePerfilEmpresaDto,
+  ) {
+    // Asegúrate de que idlogo es un número
+    if (campo === 'idlogo' && updatePerfilEmpresaDto.idlogo) {
+      updatePerfilEmpresaDto.idlogo = Number(updatePerfilEmpresaDto.idlogo);
+    }
+    return this.perfilEmpresaService.actualizarCampo(campo, updatePerfilEmpresaDto);
   }
 }

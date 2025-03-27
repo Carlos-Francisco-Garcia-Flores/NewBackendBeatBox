@@ -5,9 +5,11 @@ import { ProductosController } from './productos.controller';
 import { Producto } from './producto.entity';
 import { Categoria } from '../categorias/categoria.entity';
 import { CategoriasModule } from '../categorias/categorias.module';
+import { SubcategoriasModule } from '../subcategorias/subcategorias.module';
+import {Subcategoria} from '../subcategorias/subcategoria.entity'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Producto, Categoria]), CategoriasModule],
+  imports: [TypeOrmModule.forFeature([Producto, Categoria, Subcategoria]), CategoriasModule, SubcategoriasModule],
   controllers: [ProductosController],
   providers: [ProductosService],
   exports: [ProductosService],

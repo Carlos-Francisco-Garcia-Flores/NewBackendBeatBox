@@ -7,32 +7,35 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Incident } from './incident.entity';
 import { UsuariosService } from '../usuarios/usuarios.service';
-import { CloseIncidentDto, UsernameIsBlockedDto } from './dto/incident.dto';
+import { CloseIncidentDto, UsernameIsBlockedDto } from './incident.dto';
+import { LoggService } from '../common/logs/logger.service'; 
+import { Request } from 'express';
 
 @Injectable()
 export class IncidentService {
   constructor(
     @InjectRepository(Incident)
     private readonly incidentRepository: Repository<Incident>,
-    private readonly usuariosService: UsuariosService, 
+    private readonly usuariosService: UsuariosService,
+    private readonly logger: LoggService, // 🔹 Inyectar servicio de logs
   ) {}
 
   // Registrar un intento fallido
-  async loginFailedAttempt(idusuario: string): Promise<Incident> {
-    const usuario = await this.usuariosService.findOne(idusuario); // Usar el servicio para buscar el usuario
-
+  async loginFailedAttempt(idusuario: string, req: Request): Promise<Incident> {
+    const usuario = await this.usuariosService.findOne(idusuario);
+  
     if (!usuario) {
       throw new NotFoundException(`Usuario con ID ${idusuario} no encontrado.`);
     }
-
+  
     let incident = await this.incidentRepository.findOne({
       where: { usuario },
     });
-
+  
     const now = new Date();
-    const maxFailedAttempts = 5; 
+    const maxFailedAttempts = 5;
     const lockTimeMinutes = 10;
-
+  
     if (!incident) {
       // Si no existe, creamos uno nuevo
       incident = this.incidentRepository.create({
@@ -47,28 +50,38 @@ export class IncidentService {
           `Cuenta bloqueada. Intenta después de ${incident.blockexpiresat.toLocaleTimeString()}`,
         );
       }
-
+  
       if (incident.isblocked && now >= incident.blockexpiresat) {
         // Desbloquear si el tiempo ya pasó
         incident.failedattempts = 0;
         incident.isblocked = false;
         incident.blockexpiresat = null;
       }
-
+  
       // Incrementar intentos fallidos
       incident.failedattempts += 1;
       incident.totalfailedattempts += 1;
       incident.lastattempts = now;
-
+      
+      // Registrar el error con la IP del usuario
+      this.logger.error(
+        `Intento de inicio de sesión fallido para el usuario "${usuario.usuario}"`,
+        req, // Pasamos req para capturar la IP
+      );
+  
       // Bloquear si excede el límite
       if (incident.failedattempts >= maxFailedAttempts) {
         incident.isblocked = true;
         incident.blockexpiresat = new Date(
           now.getTime() + lockTimeMinutes * 60 * 1000,
         );
+        this.logger.error(
+          `La cuenta del usuario ${usuario.usuario} ha sido bloqueada después de tener ${incident.failedattempts} intentos fallidos de inicio de sesión continuos`,
+          req, // Pasamos req para capturar la IP
+        );
       }
     }
-
+  
     return await this.incidentRepository.save(incident);
   }
 

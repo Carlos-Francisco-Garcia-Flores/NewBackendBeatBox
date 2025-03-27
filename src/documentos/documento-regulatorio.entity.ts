@@ -21,11 +21,11 @@ export class DocumentoRegulatorio {
   @Column('decimal')
   version: string; // Se mantiene como string para manejar versiones como x.0
 
-  @CreateDateColumn()
-  fechaInicio: Date;
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  fechainicio: Date;
 
   @Column({ type: 'date', nullable: true })
-  fechaFin: Date;
+  fechafin: Date;
 
   @Column({ default: true })
   vigente: boolean;
@@ -35,4 +35,7 @@ export class DocumentoRegulatorio {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  
 }
+

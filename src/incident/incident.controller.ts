@@ -7,12 +7,15 @@ import {
   Param,
   NotFoundException,
   ForbiddenException,
+  Req,
 } from '@nestjs/common';
+
 import { IncidentService } from './incident.service';
-import { CloseIncidentDto, RegisterIncidentDto } from './dto/incident.dto';
+import { CloseIncidentDto, RegisterIncidentDto } from './incident.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 
 @Controller()
 export class IncidentController {
@@ -21,11 +24,14 @@ export class IncidentController {
   @Post('incident')
   async registerFailedAttempt(
     @Body() registerIncidentDto: RegisterIncidentDto,
+    @Req() req: Request, // Inyectar req para obtener la IP
   ) {
     return this.incidentService.loginFailedAttempt(
       registerIncidentDto.idusuario,
+      req, // Pasar req al servicio para registrar la IP
     );
   }
+
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')

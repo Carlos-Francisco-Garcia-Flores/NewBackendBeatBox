@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne} from 'typeorm';
+import { PreguntasSecretas } from '../preguntas_secretas/preguntas-secretas.entity';
 
 @Entity('usuarios')
 export class Usuarios {
@@ -14,6 +15,12 @@ export class Usuarios {
   @Column({ default: '' })
   password: string;
 
+  @ManyToOne(() => PreguntasSecretas, (preguntaSecreta) => preguntaSecreta.usuarios, { eager: true })
+  preguntaSecreta: PreguntasSecretas;
+ 
+  @Column({ default: '' })
+  preguntaSrespuesta: string; 
+
   @Column({ unique: true })
   correo_electronico: string;
 
@@ -25,4 +32,7 @@ export class Usuarios {
 
   @Column({ default: false })
   bloqueado: boolean;
+
+  @Column({ nullable: true })
+  sessionexpiredat: Date; // Nueva columna para la expiración de la sesión
 }

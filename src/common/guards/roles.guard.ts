@@ -11,30 +11,28 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+    const requiredRoles = this.reflector.get<string[]>(
+      'roles',
+      context.getHandler(),
+    );
 
-    if (!requiredRoles || requiredRoles.length === 0) {
-      return true; // Si no hay roles requeridos, permitir acceso
+    if (!requiredRoles) {
+      return true;
     }
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.role) {
-      console.error('Acceso denegado. Usuario no autenticado o sin rol asignado.');
-      throw new ForbiddenException('No tienes permisos para acceder a este recurso.');
+    // Agregar logs para depuración
+    console.log('Roles requeridos:', requiredRoles);
+    console.log('Rol del usuario:', user?.role);
+
+    if (!user || !user.role || !requiredRoles.includes(user.role)) {
+      console.error('Acceso denegado. Rol insuficiente.');
+      throw new ForbiddenException('Forbidden resource');
     }
 
-    // Convertir `user.role` a un array si no lo es y verificar si tiene al menos un rol permitido
-    const userRoles = Array.isArray(user.role) ? user.role : [user.role];
-    const hasRole = requiredRoles.some((role) => userRoles.includes(role));
-
-    if (!hasRole) {
-      console.error(`Acceso denegado. Roles requeridos: ${requiredRoles}, Roles del usuario: ${userRoles}`);
-      throw new ForbiddenException('No tienes permisos para acceder a este recurso.');
-    }
-
-    console.log('Acceso permitido. Rol válido:', userRoles);
+    console.log('Acceso permitido. Rol válido.');
     return true;
   }
 }

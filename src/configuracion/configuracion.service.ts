@@ -6,7 +6,7 @@ import { Configuracion } from './configuracion.entity'; // Entidad Configuració
 import {
   UpdateConfiguracionDto,
   CreateConfiguracionDto,
-} from './dto/create-configuracion.dto'; // DTOs
+} from './create-configuracion.dto'; // DTOs
 
 @Injectable()
 export class ConfiguracionService {
@@ -25,17 +25,21 @@ export class ConfiguracionService {
   }
 
   // Actualizar la configuración con el DTO de actualización
-  async updateConfiguracion(
-    updateConfiguracionDto: UpdateConfiguracionDto,
-  ): Promise<Configuracion> {
+  async updateConfiguracion(campo: string, updateConfiguracionDto: UpdateConfiguracionDto): Promise<Configuracion> {
+    // Buscamos la configuración existente
     const config = await this.configuracionRepository.findOne({ where: {} });
     if (!config) {
       throw new NotFoundException('Configuración no encontrada');
     }
-
-    config.maxFailedAttempts = updateConfiguracionDto.maxFailedAttempts;
-    config.lockTimeMinutes = updateConfiguracionDto.lockTimeMinutes;
-
+  
+    // Asignamos el valor del campo correspondiente
+    if (campo === 'maxFailedAttempts') {
+      config.maxFailedAttempts = updateConfiguracionDto.maxFailedAttempts;
+    } else if (campo === 'lockTimeMinutes') {
+      config.lockTimeMinutes = updateConfiguracionDto.lockTimeMinutes;
+    }
+  
+    // Guardamos la configuración actualizada
     return this.configuracionRepository.save(config);
   }
 
