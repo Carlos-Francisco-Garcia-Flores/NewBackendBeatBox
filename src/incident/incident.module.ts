@@ -5,7 +5,7 @@ import { IncidentController } from './incident.controller';
 import { IncidentService } from './incident.service';
 import { ConfiguracionModule } from '../configuracion/configuracion.module';
 import { UsuariosModule } from '../usuarios/usuarios.module';
-import { LoggerModule } from '../common/logs/logger.module'; // Importar LoggerModule
+import { LoggerModule } from '../common/loggs/logger.module'; // Importar LoggerModule
 
 @Module({
   imports: [

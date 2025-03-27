@@ -12,7 +12,7 @@ import { PwnedService } from '../services/pwned.service';
 import { ZxcvbnService } from '../services/zxcvbn.service';
 import { IncidentModule } from '../incident/incident.module';
 import { JwtStrategy } from '../common/strategies/jwt.strategy';
-import { LoggerModule } from '../common/logs/logger.module'; 
+import { LoggerModule } from '../common/loggs/logger.module'; 
 import { PreguntasSecretas } from '../preguntas_secretas/preguntas-secretas.entity'; 
 
 @Module({

@@ -40,7 +40,7 @@ import {Subcategoria} from './subcategorias/subcategoria.entity'
 import {PreguntasSecretas} from './preguntas_secretas/preguntas-secretas.entity';
 
 // Servicio de logs
-import { LoggerModule } from './common/logs/logger.module';
+import { LoggerModule } from './common/loggs/logger.module';
 
 
 @Module({

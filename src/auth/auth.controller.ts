@@ -18,7 +18,7 @@ import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { LoggService } from '../common/logs/logger.service'; 
+import { LoggService } from '../common/loggs/logger.service'; 
 import { Usuarios } from './usuario.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';

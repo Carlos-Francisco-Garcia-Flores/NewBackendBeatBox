@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'; // Importar TypeOrmModule
 import { UsuariosService } from './usuarios.service';
 import { UsuariosController } from './usuarios.controller';
 import { Usuario } from './usuarios.entity'; // Importar la entidad
-import { LoggerModule } from '../common/logs/logger.module'; 
+import { LoggerModule } from '../common/loggs/logger.module'; 
 
 @Module({
   imports: [

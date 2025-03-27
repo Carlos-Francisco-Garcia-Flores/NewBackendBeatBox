@@ -24,7 +24,7 @@ import * as jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { randomBytes } from 'crypto';
 import { PreguntasSecretas } from '../preguntas_secretas/preguntas-secretas.entity';
-import { LoggService } from '../common/logs/logger.service'; 
+import { LoggService } from '../common/loggs/logger.service'; 
 @Injectable()
 export class AuthService {
 

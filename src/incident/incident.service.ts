@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { Incident } from './incident.entity';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { CloseIncidentDto, UsernameIsBlockedDto } from './incident.dto';
-import { LoggService } from '../common/logs/logger.service'; 
+import { LoggService } from '../common/loggs/logger.service'; 
 import { Request } from 'express';
 
 @Injectable()
