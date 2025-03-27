@@ -6,7 +6,7 @@ export class CorsMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     // Obtiene los orígenes permitidos desde .env o usa valores por defecto
     const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [
-      'http://localhost:5173','https://darkseagreen-narwhal-925618.hostingersite.com/',
+      'http://localhost:5173','https://darkseagreen-narwhal-925618.hostingersite.com',
     ];
 
     const origin = req.headers.origin; // Captura el origen de la solicitud
