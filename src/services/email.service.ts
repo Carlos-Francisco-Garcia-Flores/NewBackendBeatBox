@@ -17,7 +17,7 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, resetToken: string) {
-    const url = `http://localhost:5173/cambiar_contraseña?token=${resetToken}`;
+    const url = `https://darkseagreen-narwhal-925618.hostingersite.com/cambiar_contraseña?token=${resetToken}`;
     await this.transporter.sendMail({
       to,
       subject: '🔒 Solicitud de restablecimiento de Contraseña 🤔❓',
