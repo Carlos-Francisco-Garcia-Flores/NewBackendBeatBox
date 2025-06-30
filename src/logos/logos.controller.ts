@@ -7,16 +7,12 @@ import {
   Patch,
   UseGuards,
   Delete,
-  UseInterceptors,
-  UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
 import { LogosService } from './logos.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
 
 @Controller('logos')
 export class LogosController {
@@ -61,9 +57,11 @@ export class LogosController {
   @Delete(':id')
   async delete(@Param('id') id: string) {
     const parsedId = Number(id);
-    
+
     if (isNaN(parsedId)) {
-      throw new BadRequestException('El ID proporcionado no es un número válido.');
+      throw new BadRequestException(
+        'El ID proporcionado no es un número válido.',
+      );
     }
 
     await this.logosService.delete(parsedId);

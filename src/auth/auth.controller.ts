@@ -12,21 +12,25 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ForgotPasswordDto, ResetPasswordDto, VerifySecretAnswerDto, VerifyUsernameDto} from './dto/resetPassword.dto';
+import {
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  VerifySecretAnswerDto,
+  VerifyUsernameDto,
+} from './dto/resetPassword.dto';
 import { RegisterDto, ActivationDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { LoggService } from '../common/loggs/logger.service'; 
+import { LoggService } from '../common/loggs/logger.service';
 import { Usuarios } from './usuario.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthGuard } from '@nestjs/passport'; 
-import { RolesGuard } from '../common/guards/roles.guard'; // Guard para verificar los roles de usuario
+import { AuthGuard } from '@nestjs/passport';
 
 interface AuthenticatedRequest extends Request {
-  user?: { userId: string };
+  user?: { userId: string; username: string };
 }
 
 @Controller('auth')
@@ -34,65 +38,74 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
-    private readonly logger: LoggService, 
+    private readonly logger: LoggService,
     @InjectRepository(Usuarios)
     private readonly userRepository: Repository<Usuarios>,
   ) {}
 
   @Post('login')
-async login(
-  @Body() loginDto: LoginDto,
-  @Req() req: Request,
-  @Res({ passthrough: true }) res: Response,
-) {
-  try {
-    const { token } = await this.authService.login(loginDto, req);
+  async login(
+    @Body() loginDto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    try {
+      const { token } = await this.authService.login(loginDto, req);
 
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 3600000,
-      path: '/',
-    });
+      res.cookie('auth_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 3600000,
+        path: '/',
+      });
 
-    this.logger.log(`Inicio de sesión exitoso para usuario ${loginDto.usuarioOEmail}`, req);
+      this.logger.log(
+        `Inicio de sesión exitoso para usuario ${loginDto.usuarioOEmail}`,
+        req,
+      );
 
-    return { status: HttpStatus.OK, message: 'Sesión iniciada exitosamente' };
-  } catch (error) {
-    if (error instanceof UnauthorizedException || error instanceof ForbiddenException) {
-      throw error;
+      return { status: HttpStatus.OK, message: 'Sesión iniciada exitosamente' };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+
+      this.logger.error(
+        `Error inesperado en el login de usuario: ${loginDto.usuarioOEmail}: ${error.message}`,
+        req,
+      );
+      throw new UnauthorizedException(
+        'Error en la autenticación, inténtalo nuevamente.',
+      );
     }
-
-    this.logger.error(`Error inesperado en el login de usuario ${loginDto.usuarioOEmail}: ${error.message}`, req);
-    throw new UnauthorizedException('Error en la autenticación, inténtalo nuevamente.');
   }
-}
 
   @Get('validate-user')
-    async validateSession(@Req() req: Request, @Res() res: Response) {
-      const token = req.cookies['auth_token'];
-      if (!token) {
-        throw new UnauthorizedException('No hay token en la cookie.');
-      }
-
-      try {
-        const decoded = this.jwtService.verify(token);
-
-        // Retornar también el username
-        return res.status(200).json({ 
-          message: 'Sesión válida', 
-          role: decoded.role, 
-          username: decoded.username 
-        });
-
-      } catch (error) {
-        throw new UnauthorizedException('Token inválido o expirado.');
-      }
+  async validateSession(@Req() req: Request, @Res() res: Response) {
+    const token = req.cookies['auth_token'];
+    if (!token) {
+      throw new UnauthorizedException('No hay token en la cookie.');
     }
 
+    try {
+      const decoded = this.jwtService.verify(token);
 
-    @UseGuards(AuthGuard('jwt'))
+      // Retornar también el username
+      return res.status(200).json({
+        message: 'Sesión válida',
+        role: decoded.role,
+        username: decoded.username,
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Token inválido o expirado.');
+    }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   async logout(@Req() req: AuthenticatedRequest, @Res() res: Response) {
     try {
@@ -101,8 +114,13 @@ async login(
       }
 
       const userId = req.user.userId;
+      const username = req.user.username; // Obtenemos el nombre de usuario
+      const clientIp = req.ip || 'IP no disponible'; // Extraemos la IP del cliente
+
+      // Actualizamos el sessionId del usuario en la base de datos
       await this.userRepository.update(userId, { sessionId: null });
 
+      // Limpiamos la cookie de autenticación
       res.cookie('auth_token', '', {
         httpOnly: true,
         secure: true,
@@ -110,15 +128,17 @@ async login(
         expires: new Date(0),
       });
 
-      this.logger.log(`Sesión cerrada para el usuario ${userId}`);
-      return res.status(200).json({ message: 'Sesión cerrada exitosamente' });
+      // Registramos la acción en los logs
+      this.logger.log(
+        `Sesión cerrada con éxito para el usuario ${username} | IP: ${clientIp}`,
+      );
 
+      return res.status(200).json({ message: 'Sesión cerrada exitosamente' });
     } catch (error) {
       this.logger.error('Error al cerrar sesión:', error);
       return res.status(500).json({ message: 'Error al cerrar sesión' });
     }
   }
-
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto, @Req() req: Request) {
@@ -139,19 +159,25 @@ async login(
 
   @Post('give/secret-question')
   async getSecretQuestion(@Body() VerifyUsernameDto: VerifyUsernameDto) {
-    return await this.authService.getSecretQuestionByUsername(VerifyUsernameDto);
+    return await this.authService.getSecretQuestionByUsername(
+      VerifyUsernameDto,
+    );
   }
 
   @Post('reset/password/verify-secret-answer')
-  async verifySecretAnswer(@Body() VerifySecretAnswerDto: VerifySecretAnswerDto) {
+  async verifySecretAnswer(
+    @Body() VerifySecretAnswerDto: VerifySecretAnswerDto,
+  ) {
     return await this.authService.verifySecretAnswer(VerifySecretAnswerDto);
   }
 
   @Post('reset/password')
-  async reset_password(@Body() resetPasswordDto: ResetPasswordDto) {
-    return await this.authService.reset_password(resetPasswordDto);
+  async reset_password(
+    @Body() resetPasswordDto: ResetPasswordDto,
+    @Req() req: Request, // Obtener la IP desde el request
+  ) {
+    return await this.authService.reset_password(resetPasswordDto, req.ip);
   }
-
 
   @Post('verify/otp/code')
   async verify_email(@Body() activationDto: ActivationDto) {

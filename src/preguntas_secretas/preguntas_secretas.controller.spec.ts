@@ -9,7 +9,9 @@ describe('PreguntasSecretasController', () => {
       controllers: [PreguntasSecretasController],
     }).compile();
 
-    controller = module.get<PreguntasSecretasController>(PreguntasSecretasController);
+    controller = module.get<PreguntasSecretasController>(
+      PreguntasSecretasController,
+    );
   });
 
   it('should be defined', () => {

@@ -6,9 +6,11 @@ import { SubcategoriaController } from './subcategorias.controller';
 import { Categoria } from '../categorias/categoria.entity';
 import { CategoriasModule } from '../categorias/categorias.module';
 
-
 @Module({
-  imports: [TypeOrmModule.forFeature([Subcategoria, Categoria]), CategoriasModule],
+  imports: [
+    TypeOrmModule.forFeature([Subcategoria, Categoria]),
+    CategoriasModule,
+  ],
   providers: [SubcategoriaService],
   controllers: [SubcategoriaController],
   exports: [SubcategoriaService],

@@ -35,7 +35,4 @@ export class DocumentoRegulatorio {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  
 }
-

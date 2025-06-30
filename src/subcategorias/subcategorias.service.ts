@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subcategoria } from './subcategoria.entity';
-import { CreateSubcategoriaDto, UpdateSubcategoriaDto } from './subcategoria.dto';
+import {
+  CreateSubcategoriaDto,
+  UpdateSubcategoriaDto,
+} from './subcategoria.dto';
 import { Categoria } from '../categorias/categoria.entity';
 
 @Injectable()
@@ -14,7 +17,9 @@ export class SubcategoriaService {
     private categoriaRepository: Repository<Categoria>,
   ) {}
 
-  async create(createSubcategoriaDto: CreateSubcategoriaDto): Promise<Subcategoria> {
+  async create(
+    createSubcategoriaDto: CreateSubcategoriaDto,
+  ): Promise<Subcategoria> {
     const categoria = await this.categoriaRepository.findOne({
       where: { id: createSubcategoriaDto.id_categoria },
     });
@@ -44,8 +49,13 @@ export class SubcategoriaService {
     });
   }
 
-  async update(id: number, updateSubcategoriaDto: UpdateSubcategoriaDto): Promise<Subcategoria> {
-    const subcategoria = await this.subcategoriaRepository.findOne({ where: { id } });
+  async update(
+    id: number,
+    updateSubcategoriaDto: UpdateSubcategoriaDto,
+  ): Promise<Subcategoria> {
+    const subcategoria = await this.subcategoriaRepository.findOne({
+      where: { id },
+    });
     if (!subcategoria) {
       throw new Error('Subcategoría no encontrada');
     }
@@ -59,8 +69,8 @@ export class SubcategoriaService {
     await this.subcategoriaRepository.delete(id);
   }
 
-   // Método para obtener las subcategorías por categoría
-   async findByCategoria(categoriaId: number): Promise<Subcategoria[]> {
+  // Método para obtener las subcategorías por categoría
+  async findByCategoria(categoriaId: number): Promise<Subcategoria[]> {
     const categoria = await this.categoriaRepository.findOne({
       where: { id: categoriaId },
       relations: ['subcategorias'], // Asegúrate de que la categoría tenga la relación 'subcategorias'

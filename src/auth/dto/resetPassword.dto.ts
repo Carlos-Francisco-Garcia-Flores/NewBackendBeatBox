@@ -5,7 +5,7 @@ import {
   IsNotEmpty,
   MinLength,
   MaxLength,
-  Matches
+  Matches,
 } from 'class-validator';
 
 export class ForgotPasswordDto {
@@ -23,8 +23,12 @@ export class ResetPasswordDto {
   @Prop({ required: true })
   @IsString()
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres ' })
-  @MaxLength(12, {message:'la contraseña debe tener como maximo un total de 12 caracteres',})
-  @Matches(/^(?!.*[<>\"'`;\/\*]).+$/, { message: 'La contraseña contiene caracteres no permitidos' })
+  @MaxLength(12, {
+    message: 'la contraseña debe tener como maximo un total de 12 caracteres',
+  })
+  @Matches(/^(?!.*[<>\"'`;\/\*]).+$/, {
+    message: 'La contraseña contiene caracteres no permitidos',
+  })
   new_password: string;
 }
 

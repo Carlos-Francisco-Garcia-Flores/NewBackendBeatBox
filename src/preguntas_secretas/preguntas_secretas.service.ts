@@ -32,7 +32,10 @@ export class PreguntasSecretasService {
   }
 
   // Actualizar una pregunta secreta
-  async update(id: string, dto: PreguntaSecretaDto): Promise<PreguntasSecretas> {
+  async update(
+    id: string,
+    dto: PreguntaSecretaDto,
+  ): Promise<PreguntasSecretas> {
     const pregunta = await this.findOne(id);
     pregunta.pregunta = dto.pregunta;
     return await this.preguntasRepo.save(pregunta);

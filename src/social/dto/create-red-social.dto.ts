@@ -6,8 +6,12 @@ export class CreateRedSocialDto {
   tipo: string;
 
   @IsNotEmpty()
-  @Matches(/^(https?:\/\/)?(www\.)?(facebook|instagram|twitter|x)\.com\/[A-Za-z0-9_.-]+\/?$/, {
-    message: 'El enlace debe ser una URL válida de Facebook, Instagram o Twitter.',
-  })
+  @Matches(
+    /^(https?:\/\/)?(www\.)?(facebook|instagram|twitter|x)\.com\/[A-Za-z0-9_.-]+\/?$/,
+    {
+      message:
+        'El enlace debe ser una URL válida de Facebook, Instagram o Twitter.',
+    },
+  )
   linkRed: string;
 }

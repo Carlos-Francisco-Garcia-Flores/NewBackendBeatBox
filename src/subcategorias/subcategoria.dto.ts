@@ -11,7 +11,6 @@ export class CreateSubcategoriaDto {
 }
 
 export class UpdateSubcategoriaDto {
-
   @IsString()
   @IsOptional()
   nombre: string;

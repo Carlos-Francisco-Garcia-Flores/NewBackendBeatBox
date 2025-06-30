@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import { ScheduleModule } from '@nestjs/schedule';
 // Middlewares
 import { CorsMiddleware } from './cors.middleware';
 
@@ -22,7 +22,7 @@ import { LogosModule } from './logos/logos.module';
 import { ProductosModule } from './productos/productos.module';
 import { CategoriasModule } from './categorias/categorias.module';
 import { PerfilUsuarioModule } from './perfil_usuario/perfil_usuario.module';
-import {PreguntasSecretasModule} from './preguntas_secretas/preguntas_secretas.module';
+import { PreguntasSecretasModule } from './preguntas_secretas/preguntas_secretas.module';
 import { SubcategoriasModule } from './subcategorias/subcategorias.module';
 
 // Entidades
@@ -36,17 +36,20 @@ import { Configuracion } from './configuracion/configuracion.entity';
 import { Usuarios } from './auth/usuario.entity';
 import { Producto } from './productos//producto.entity';
 import { Categoria } from './categorias/categoria.entity';
-import {Subcategoria} from './subcategorias/subcategoria.entity'
-import {PreguntasSecretas} from './preguntas_secretas/preguntas-secretas.entity';
-
+import { Subcategoria } from './subcategorias/subcategoria.entity';
+import { PreguntasSecretas } from './preguntas_secretas/preguntas-secretas.entity';
+import {ImagenProducto} from './imagenes-productos/imagen-producto.entity'
+import {Subscripcion} from './subscripciones/subscripciones.entity'
 // Servicio de logs
 import { LoggerModule } from './common/loggs/logger.module';
-
+import { ImagenesProductosModule } from './imagenes-productos/imagenes-productos.module';
+import { SubscripcionesModule } from './subscripciones/subscripciones.module';
 
 @Module({
   imports: [
     // Carga de variables de entorno (.env)
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
 
     // Configuración de TypeORM con PostgreSQL
     TypeOrmModule.forRootAsync({
@@ -71,8 +74,10 @@ import { LoggerModule } from './common/loggs/logger.module';
           Categoria,
           PreguntasSecretas,
           Subcategoria,
+          ImagenProducto,
+          Subscripcion,
         ],
-        synchronize: false, 
+        synchronize: false,
         dropSchema: false,
         migrationsRun: true,
       }),
@@ -94,6 +99,8 @@ import { LoggerModule } from './common/loggs/logger.module';
     ],
     PreguntasSecretasModule,
     SubcategoriasModule,
+    ImagenesProductosModule,
+    SubscripcionesModule,
   ],
 })
 export class AppModule implements NestModule {

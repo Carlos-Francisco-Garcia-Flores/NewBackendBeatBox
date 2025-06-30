@@ -28,21 +28,25 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     // Buscar al usuario en la base de datos
-    const user = await this.userRepository.findOne({ where: { id: payload.sub } });
+    const user = await this.userRepository.findOne({
+      where: { id: payload.sub },
+    });
 
-      if (!user) {
-        throw new UnauthorizedException('Usuario no encontrado');
-      }
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
 
-      // Verificar si la sesión ha expirado
-      if (user.sessionexpiredat && user.sessionexpiredat < new Date()) {
-        throw new UnauthorizedException('La sesión ha expirado. Inicie sesión nuevamente.');
-      }
+    // Verificar si la sesión ha expirado
+    if (user.sessionexpiredat && user.sessionexpiredat < new Date()) {
+      throw new UnauthorizedException(
+        'La sesión ha expirado. Inicie sesión nuevamente.',
+      );
+    }
 
-  return {
-    userId: user.id,
-    username: user.usuario,
-    role: user.role,
-  };
-}
+    return {
+      userId: user.id,
+      username: user.usuario,
+      role: user.role,
+    };
+  }
 }

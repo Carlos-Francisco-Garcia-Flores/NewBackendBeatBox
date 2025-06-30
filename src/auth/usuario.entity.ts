@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { PreguntasSecretas } from '../preguntas_secretas/preguntas-secretas.entity';
 
 @Entity('usuarios')
@@ -15,11 +15,15 @@ export class Usuarios {
   @Column({ default: '' })
   password: string;
 
-  @ManyToOne(() => PreguntasSecretas, (preguntaSecreta) => preguntaSecreta.usuarios, { eager: true })
+  @ManyToOne(
+    () => PreguntasSecretas,
+    (preguntaSecreta) => preguntaSecreta.usuarios,
+    { eager: true },
+  )
   preguntaSecreta: PreguntasSecretas;
- 
+
   @Column({ default: '' })
-  preguntaSrespuesta: string; 
+  preguntaSrespuesta: string;
 
   @Column({ unique: true })
   correo_electronico: string;

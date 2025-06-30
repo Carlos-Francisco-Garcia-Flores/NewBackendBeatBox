@@ -2,15 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm'; // Para inyectar repositorio
 import { Repository } from 'typeorm';
 import { Usuario } from './usuarios.entity.js'; // Importa la entidad Usuario
-import { LoggService } from '../common/loggs/logger.service.js'; 
+import { LoggService } from '../common/loggs/logger.service.js';
 
 @Injectable()
 export class UsuariosService {
   constructor(
-    @InjectRepository(Usuario) 
-    private usuarioRepository: Repository<Usuario>, 
-    private readonly loggService: LoggService, 
-
+    @InjectRepository(Usuario)
+    private usuarioRepository: Repository<Usuario>,
+    private readonly loggService: LoggService,
   ) {}
 
   async toggleBloqueo(id: string, bloquear: boolean): Promise<Usuario> {
@@ -50,7 +49,6 @@ export class UsuariosService {
   async delete(id: number): Promise<any> {
     return this.usuarioRepository.delete(id); // Eliminar usuario
   }
-
 
   async updateRole(id: string, newRole: string, req: any): Promise<Usuario> {
     const usuario = await this.usuarioRepository.findOne({ where: { id } });

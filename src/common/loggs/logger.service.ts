@@ -9,7 +9,7 @@ export class LoggService implements LoggerService {
 
   constructor() {
     // Directorio donde se almacenarán los logs
-    this.logDirectory = path.join(__dirname, '../../../logs');
+    this.logDirectory = path.join(__dirname, '../../../docu_logs');
     // Asegurarse de que el directorio de logs exista
     if (!fs.existsSync(this.logDirectory)) {
       fs.mkdirSync(this.logDirectory);
@@ -35,7 +35,12 @@ export class LoggService implements LoggerService {
     return path.join(this.logDirectory, fileName);
   }
 
-  private writeToFile(level: string, message: string, ip?: string, trace?: string) {
+  private writeToFile(
+    level: string,
+    message: string,
+    ip?: string,
+    trace?: string,
+  ) {
     const timestamp = this.getFormattedTimestamp(); // Obtener hora en México
     const logMessage = `[${timestamp}] [${level}] ${message} ${ip ? `| IP: ${ip}` : ''} ${trace ? `\nTRACE: ${trace}` : ''}\n`;
 
@@ -44,7 +49,11 @@ export class LoggService implements LoggerService {
   }
 
   private getClientIp(req?: Request): string {
-    return req?.headers['x-forwarded-for'] as string || req?.socket.remoteAddress || 'IP no disponible';
+    return (
+      (req?.headers['x-forwarded-for'] as string) ||
+      req?.socket.remoteAddress ||
+      'IP no disponible'
+    );
   }
 
   log(message: string, req?: Request) {
@@ -54,7 +63,12 @@ export class LoggService implements LoggerService {
 
   error(message: string, req?: Request, trace?: string) {
     console.error(`🚨 ERROR: ${message}`);
-    this.writeToFile('ERROR', message, req ? this.getClientIp(req) : undefined, trace);
+    this.writeToFile(
+      'ERROR',
+      message,
+      req ? this.getClientIp(req) : undefined,
+      trace,
+    );
   }
 
   warn(message: string, req?: Request) {
@@ -69,6 +83,10 @@ export class LoggService implements LoggerService {
 
   verbose(message: string, req?: Request) {
     console.log(`🔍 VERBOSE: ${message}`);
-    this.writeToFile('VERBOSE', message, req ? this.getClientIp(req) : undefined);
+    this.writeToFile(
+      'VERBOSE',
+      message,
+      req ? this.getClientIp(req) : undefined,
+    );
   }
 }

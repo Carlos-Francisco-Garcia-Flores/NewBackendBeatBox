@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { Incident } from './incident.entity';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { CloseIncidentDto, UsernameIsBlockedDto } from './incident.dto';
-import { LoggService } from '../common/loggs/logger.service'; 
+import { LoggService } from '../common/loggs/logger.service';
 import { Request } from 'express';
 
 @Injectable()
@@ -23,19 +23,19 @@ export class IncidentService {
   // Registrar un intento fallido
   async loginFailedAttempt(idusuario: string, req: Request): Promise<Incident> {
     const usuario = await this.usuariosService.findOne(idusuario);
-  
+
     if (!usuario) {
       throw new NotFoundException(`Usuario con ID ${idusuario} no encontrado.`);
     }
-  
+
     let incident = await this.incidentRepository.findOne({
       where: { usuario },
     });
-  
+
     const now = new Date();
     const maxFailedAttempts = 5;
     const lockTimeMinutes = 10;
-  
+
     if (!incident) {
       // Si no existe, creamos uno nuevo
       incident = this.incidentRepository.create({
@@ -50,25 +50,25 @@ export class IncidentService {
           `Cuenta bloqueada. Intenta después de ${incident.blockexpiresat.toLocaleTimeString()}`,
         );
       }
-  
+
       if (incident.isblocked && now >= incident.blockexpiresat) {
         // Desbloquear si el tiempo ya pasó
         incident.failedattempts = 0;
         incident.isblocked = false;
         incident.blockexpiresat = null;
       }
-  
+
       // Incrementar intentos fallidos
       incident.failedattempts += 1;
       incident.totalfailedattempts += 1;
       incident.lastattempts = now;
-      
+
       // Registrar el error con la IP del usuario
       this.logger.error(
         `Intento de inicio de sesión fallido para el usuario "${usuario.usuario}"`,
         req, // Pasamos req para capturar la IP
       );
-  
+
       // Bloquear si excede el límite
       if (incident.failedattempts >= maxFailedAttempts) {
         incident.isblocked = true;
@@ -81,7 +81,7 @@ export class IncidentService {
         );
       }
     }
-  
+
     return await this.incidentRepository.save(incident);
   }
 
@@ -93,29 +93,29 @@ export class IncidentService {
   // Obtener incidente por usuario
   async getIncidentByUser(idusuario: string): Promise<Incident | null> {
     console.log(`Buscando usuario con ID: ${idusuario}`);
-    
+
     const usuario = await this.usuariosService.findOne(idusuario);
-  
+
     if (!usuario) {
       console.log(`Usuario con ID ${idusuario} no encontrado.`);
       throw new NotFoundException(`Usuario con ID ${idusuario} no encontrado.`);
     }
-  
+
     console.log(`Usuario encontrado:`, usuario);
-  
+
     if (usuario.bloqueado) {
       console.log(`Usuario ${idusuario} está bloqueado.`);
       throw new ForbiddenException(
         'El usuario ha sido bloqueado por un administrador.',
       );
     }
-  
+
     const incident = await this.incidentRepository.findOne({
       where: { usuario: { id: idusuario } },
     });
-  
+
     console.log(`Incidencia encontrada:`, incident);
-  
+
     return incident;
   }
 

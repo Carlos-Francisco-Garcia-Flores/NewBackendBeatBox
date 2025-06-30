@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, IsNotEmpty } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdatePerfilEmpresaDto {
   @IsString()
@@ -11,5 +11,5 @@ export class UpdatePerfilEmpresaDto {
 
   @IsInt()
   @IsOptional()
-  idlogo?: number;  
+  idlogo?: number;
 }

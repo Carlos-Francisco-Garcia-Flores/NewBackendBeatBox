@@ -21,10 +21,9 @@ export class CategoriasController {
   }
 
   @Get(':id')
-async getOne(@Param('id', ParseIntPipe) id: number) {
-  return await this.categoriasService.findOne(id);
-}
-
+  async getOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.categoriasService.findOne(id);
+  }
 
   @Post()
   async create(@Body() dto: CreateCategoriaDto) {

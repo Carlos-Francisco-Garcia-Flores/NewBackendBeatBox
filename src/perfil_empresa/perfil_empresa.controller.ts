@@ -26,6 +26,9 @@ export class PerfilEmpresaController {
     if (campo === 'idlogo' && updatePerfilEmpresaDto.idlogo) {
       updatePerfilEmpresaDto.idlogo = Number(updatePerfilEmpresaDto.idlogo);
     }
-    return this.perfilEmpresaService.actualizarCampo(campo, updatePerfilEmpresaDto);
+    return this.perfilEmpresaService.actualizarCampo(
+      campo,
+      updatePerfilEmpresaDto,
+    );
   }
 }

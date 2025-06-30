@@ -1,6 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { Categoria } from '../categorias/categoria.entity';
 import { Subcategoria } from '../subcategorias/subcategoria.entity';
+import { ImagenProducto } from '../imagenes-productos/imagen-producto.entity';
 
 @Entity('productos')
 export class Producto {
@@ -41,4 +53,10 @@ export class Producto {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => ImagenProducto, (img) => img.producto)
+  imagenes: ImagenProducto[];
+
 }
+
+

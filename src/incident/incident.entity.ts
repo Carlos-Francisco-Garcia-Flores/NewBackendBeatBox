@@ -16,9 +16,8 @@ export class Incident {
   @JoinColumn({ name: 'idusuario' })
   usuario: Usuario;
 
-  @Column({ type: 'uuid' }) 
+  @Column({ type: 'uuid' })
   idusuario: string;
-
 
   @Column({ default: 0 })
   failedattempts: number;

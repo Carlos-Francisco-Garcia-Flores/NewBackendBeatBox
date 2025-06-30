@@ -9,6 +9,5 @@ import { PreguntasSecretas } from './preguntas-secretas.entity';
   providers: [PreguntasSecretasService],
   controllers: [PreguntasSecretasController],
   exports: [PreguntasSecretasService],
-  
 })
 export class PreguntasSecretasModule {}

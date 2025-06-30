@@ -77,22 +77,22 @@ export class DocumentoRegulatorioService {
     const documento = await this.documentoRepository.findOne({
       where: { id },
     });
-  
+
     if (!documento) {
       throw new NotFoundException(`Documento con ID: ${id} no encontrado`);
     }
-  
+
     // Desactivar el documento vigente actual (lo marca como no vigente)
     documento.vigente = false;
     // Asegurarse de no incluir datos no deseados como el 'id' ni otros campos que deberían mantenerse constantes.
     const { id: documentoId, fechainicio, ...documentoData } = documento;
-  
+
     // Guardamos el documento desactivado
     await this.documentoRepository.save(documento);
-  
+
     // Incrementar la versión y crear el nuevo documento
     const nuevaVersion = this.incrementVersion(documento.version);
-  
+
     // Crear un nuevo documento con los datos actualizados y la nueva versión
     const nuevaVersionDocumento = this.documentoRepository.create({
       ...documentoData, // Solo los datos que no se deben modificar
@@ -101,11 +101,10 @@ export class DocumentoRegulatorioService {
       vigente: true, // Hacer que la nueva versión sea vigente
       fechainicio: new Date(), // Fecha de creación para el nuevo documento
     });
-  
+
     // Guardar el nuevo documento
     return this.documentoRepository.save(nuevaVersionDocumento);
   }
-  
 
   // Eliminar un documento (marcar como eliminado)
   async deleteDocumento(id: number): Promise<DocumentoRegulatorio> {

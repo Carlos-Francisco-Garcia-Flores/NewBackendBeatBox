@@ -1,5 +1,14 @@
 // src/configuracion/configuracion.controller.ts
-import { Body, Param, Controller, Get, Put, Post, UseGuards, BadRequestException} from '@nestjs/common';
+import {
+  Body,
+  Param,
+  Controller,
+  Get,
+  Put,
+  Post,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfiguracionService } from './configuracion.service';
 import {
   UpdateConfiguracionDto,
@@ -59,6 +68,9 @@ export class ConfiguracionController {
     }
 
     // Llamamos al servicio para actualizar la configuración
-    return this.configuracionService.updateConfiguracion(campo, updateConfiguracionDto);
+    return this.configuracionService.updateConfiguracion(
+      campo,
+      updateConfiguracionDto,
+    );
   }
 }

@@ -7,7 +7,6 @@ import {
   MaxLength,
   Matches,
   IsOptional,
-  isNotEmpty,
   IsUUID,
 } from 'class-validator';
 
@@ -39,15 +38,17 @@ export class RegisterDto {
   @Prop({ required: true })
   @IsNotEmpty({ message: 'Por favor, ingrese su contraseña' })
   @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
-  @Matches(/^(?!.*[<>\"'`;\/\*]).+$/, { message: 'La contraseña contiene caracteres no permitidos' })
+  @Matches(/^(?!.*[<>\"'`;\/\*]).+$/, {
+    message: 'La contraseña contiene caracteres no permitidos',
+  })
   password: string;
 
   @IsNotEmpty({ message: 'Por favor, seleccione una pregunta válida' })
   @IsUUID('4', { message: 'El ID de la pregunta debe ser un UUID válido' })
   preguntaSecretaId: string;
 
-  @Prop({required: true})
-  @IsNotEmpty({ message: 'Por favor agregue una respuesta validad'})
+  @Prop({ required: true })
+  @IsNotEmpty({ message: 'Por favor agregue una respuesta validad' })
   preguntaSrespuesta: string;
 
   @Prop({ default: false })

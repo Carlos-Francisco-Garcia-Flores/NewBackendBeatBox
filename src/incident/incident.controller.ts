@@ -32,7 +32,6 @@ export class IncidentController {
     );
   }
 
-
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Get('incident/:usuario')
@@ -43,7 +42,9 @@ export class IncidentController {
       const incident = await this.incidentService.getIncidentByUser(usuario);
 
       if (!incident) {
-        console.log(`No se encontraron incidencias para el usuario: ${usuario}`);
+        console.log(
+          `No se encontraron incidencias para el usuario: ${usuario}`,
+        );
         return {
           message: `No se encontraron incidencias para el usuario '${usuario}'.`,
         };
@@ -54,7 +55,10 @@ export class IncidentController {
     } catch (error) {
       console.error(`Error al obtener incidencias:`, error);
 
-      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
         throw error;
       }
 

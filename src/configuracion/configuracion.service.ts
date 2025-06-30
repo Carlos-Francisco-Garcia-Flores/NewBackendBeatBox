@@ -25,20 +25,23 @@ export class ConfiguracionService {
   }
 
   // Actualizar la configuración con el DTO de actualización
-  async updateConfiguracion(campo: string, updateConfiguracionDto: UpdateConfiguracionDto): Promise<Configuracion> {
+  async updateConfiguracion(
+    campo: string,
+    updateConfiguracionDto: UpdateConfiguracionDto,
+  ): Promise<Configuracion> {
     // Buscamos la configuración existente
     const config = await this.configuracionRepository.findOne({ where: {} });
     if (!config) {
       throw new NotFoundException('Configuración no encontrada');
     }
-  
+
     // Asignamos el valor del campo correspondiente
     if (campo === 'maxFailedAttempts') {
       config.maxFailedAttempts = updateConfiguracionDto.maxFailedAttempts;
     } else if (campo === 'lockTimeMinutes') {
       config.lockTimeMinutes = updateConfiguracionDto.lockTimeMinutes;
     }
-  
+
     // Guardamos la configuración actualizada
     return this.configuracionRepository.save(config);
   }
