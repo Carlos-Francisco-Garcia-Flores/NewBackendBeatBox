@@ -38,5 +38,5 @@ export class Usuarios {
   bloqueado: boolean;
 
   @Column({ nullable: true })
-  sessionexpiredat: Date; // Nueva columna para la expiración de la sesión
+  sessionexpiredat: Date; 
 }

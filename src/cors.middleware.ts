@@ -10,24 +10,19 @@ export class CorsMiddleware implements NestMiddleware {
     const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [
       'http://localhost:5173',
       'https://darkseagreen-narwhal-925618.hostingersite.com',
-      'http://10.0.2.2:3000',        // ✅ Para emulador Android
-      'http://localhost:3000',       // ✅ Para desarrollo local
-      'http://127.0.0.1:3000',       // ✅ Alternativa localhost
-      'http://0.0.0.0:3000'          // ✅ Para todas las interfaces
+      'http://10.0.2.2:3000',        
+      'http://localhost:3000',       
+      'http://127.0.0.1:3000',      
+      'http://0.0.0.0:3000'          
     ];
 
     const origin = req.headers.origin;
 
-    // ✅ Permitir requests sin origin (como los de aplicaciones móviles)
     if (!origin) {
       res.setHeader('Access-Control-Allow-Origin', '*');
-      console.log('✅ CORS: Allowing request without origin');
     } else if (allowedOrigins.includes(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
-      console.log(`✅ CORS: Allowing origin ${origin}`);
-    } else {
-      console.log(`❌ CORS: Blocking origin ${origin}`);
-    }
+    } 
 
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader(
@@ -40,7 +35,6 @@ export class CorsMiddleware implements NestMiddleware {
     );
 
     if (req.method === 'OPTIONS') {
-      console.log('🔄 CORS: Handling preflight request');
       return res.status(204).send();
     }
 
