@@ -40,10 +40,13 @@ import { Subcategoria } from './subcategorias/subcategoria.entity';
 import { PreguntasSecretas } from './preguntas_secretas/preguntas-secretas.entity';
 import {ImagenProducto} from './imagenes-productos/imagen-producto.entity'
 import {Subscripcion} from './subscripciones/subscripciones.entity'
+import {Playlist} from './playlist/playlist.entity'
 // Servicio de logs
 import { LoggerModule } from './common/loggs/logger.module';
 import { ImagenesProductosModule } from './imagenes-productos/imagenes-productos.module';
 import { SubscripcionesModule } from './subscripciones/subscripciones.module';
+import { PlaylistModule } from './playlist/playlist.module';
+import { PesoMModule } from './peso-m/peso-m.module';
 
 @Module({
   imports: [
@@ -76,6 +79,7 @@ import { SubscripcionesModule } from './subscripciones/subscripciones.module';
           Subcategoria,
           ImagenProducto,
           Subscripcion,
+          Playlist,
         ],
         synchronize: false,
         dropSchema: false,
@@ -96,11 +100,14 @@ import { SubscripcionesModule } from './subscripciones/subscripciones.module';
       CategoriasModule,
       LoggerModule,
       PerfilUsuarioModule,
+      PreguntasSecretasModule,
+      SubcategoriasModule,
+      ImagenesProductosModule,
+      SubscripcionesModule,
+      PlaylistModule,
     ],
-    PreguntasSecretasModule,
-    SubcategoriasModule,
-    ImagenesProductosModule,
-    SubscripcionesModule,
+    PesoMModule,
+    
   ],
 })
 export class AppModule implements NestModule {
