@@ -41,12 +41,18 @@ import { PreguntasSecretas } from './preguntas_secretas/preguntas-secretas.entit
 import {ImagenProducto} from './imagenes-productos/imagen-producto.entity'
 import {Subscripcion} from './subscripciones/subscripciones.entity'
 import {Playlist} from './playlist/playlist.entity'
+import { Carrito } from './carrito/carrito.entity';
+import { CarritoItem } from './carrito/carrito-item.entity';
+import { PesoM } from './peso-m/peso-m.entity';
+import { PerfilUsuarios } from './perfil_usuario/perfil_usuario.entity';
+
 // Servicio de logs
 import { LoggerModule } from './common/loggs/logger.module';
 import { ImagenesProductosModule } from './imagenes-productos/imagenes-productos.module';
 import { SubscripcionesModule } from './subscripciones/subscripciones.module';
 import { PlaylistModule } from './playlist/playlist.module';
 import { PesoMModule } from './peso-m/peso-m.module';
+import { CarritoModule } from './carrito/carrito.module';
 
 @Module({
   imports: [
@@ -80,6 +86,10 @@ import { PesoMModule } from './peso-m/peso-m.module';
           ImagenProducto,
           Subscripcion,
           Playlist,
+          PesoM,
+          Carrito,
+          CarritoItem,
+          PerfilUsuarios,
         ],
         synchronize: false,
         dropSchema: false,
@@ -105,8 +115,10 @@ import { PesoMModule } from './peso-m/peso-m.module';
       ImagenesProductosModule,
       SubscripcionesModule,
       PlaylistModule,
+      PesoMModule,
+      CarritoModule,
     ],
-    PesoMModule,
+    
     
   ],
 })

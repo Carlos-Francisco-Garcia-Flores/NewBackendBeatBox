@@ -20,8 +20,8 @@ import { Roles } from '../common/decorators/roles.decorator';
 export class DocumentoRegulatorioController {
   constructor(private readonly documentoService: DocumentoRegulatorioService) {}
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('admin')
+  // @UseGuards(AuthGuard('jwt'), RolesGuard)
+  // @Roles('admin')
   @Get()
   async getAllDocumentos() {
     return this.documentoService.getAllDocumentos();

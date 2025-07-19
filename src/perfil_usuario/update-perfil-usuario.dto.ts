@@ -1,0 +1,3 @@
+import { CreatePerfilUsuarioDto } from './create-perfil-usuario.dto';
+
+export class UpdatePerfilUsuarioDto extends (CreatePerfilUsuarioDto) {}

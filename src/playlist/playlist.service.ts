@@ -60,4 +60,22 @@ export class PlaylistService {
     async remove(id: string): Promise<void> {
         await this.playlistRepo.delete(id);
     }
+
+    async desactivarTipo(tipo: string): Promise<void> {
+        await this.playlistRepo.update({ tipo }, { vigente: false });
     }
+
+    async cambiarVigente(id: string, vigente: boolean): Promise<Playlist> {
+        const playlist = await this.playlistRepo.findOneBy({ id });
+        if (!playlist) throw new BadRequestException('Playlist no encontrada');
+
+        // Si se está activando una playlist, desactivar las otras del mismo tipo
+        if (vigente) {
+            await this.playlistRepo.update({ tipo: playlist.tipo }, { vigente: false });
+        }
+
+        playlist.vigente = vigente;
+        return this.playlistRepo.save(playlist);
+    }
+
+}

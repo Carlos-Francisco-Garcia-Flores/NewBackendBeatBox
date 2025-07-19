@@ -6,13 +6,14 @@ export class PesoM {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'float' }) // cambio a tipo numérico
+    @Column({ type: 'float' })
     peso: number;
 
     @Column({ type: 'date', nullable: true })
     fecha: Date;
 
+
     @ManyToOne(() => PerfilUsuarios, perfil => perfil.pesos, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'idperfil' }) // nombre más claro de columna foránea
+    @JoinColumn({ name: 'idperfil' }) 
     perfil: PerfilUsuarios;
 }
