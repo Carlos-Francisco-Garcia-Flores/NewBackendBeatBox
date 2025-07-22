@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+  OneToMany,
+} from 'typeorm';
 import { Usuario } from '../usuarios/usuarios.entity';
 import { PesoM } from '../peso-m/peso-m.entity';
 
@@ -27,21 +34,11 @@ export class PerfilUsuarios {
   genero: string;
 
   @Column({ default: '' })
-  direccion: string;
-
+  nombre_contacto_emergencia?: string;
+  
   @Column({ default: '' })
-  ciudad: string;
+  telefono_contacto_emergencia?: string;
 
-  @Column({ default: '' })
-  codigo_postal: string;
-
-  @Column({ type: 'float', nullable: true })
-  alturaI: number;
-
-  @Column({ type: 'float', nullable: true })
-  pesoI: number;
-
-  // Relación con los pesos registrados
-  @OneToMany(() => PesoM, peso => peso.perfil)
+  @OneToMany(() => PesoM, (peso) => peso.perfilUsuario)
   pesos: PesoM[];
 }

@@ -8,7 +8,7 @@ import { UpdatePerfilUsuarioDto } from './update-perfil-usuario.dto';
 export class PerfilUsuarioController {
   constructor(private readonly perfilService: PerfilUsuarioService) {}
 
-  @Post()
+  @Post('crear')
   create(@Body() body: CreatePerfilUsuarioDto): Promise<PerfilUsuarios> {
     return this.perfilService.create(body);
   }
@@ -35,4 +35,21 @@ export class PerfilUsuarioController {
   remove(@Param('id') id: string): Promise<void> {
     return this.perfilService.remove(id);
   }
+
+  // perfil_usuario.controller.ts
+
+  @Get('usuario/:idusuario')
+  findByUsuarioId(@Param('idusuario') idusuario: string): Promise<PerfilUsuarios> {
+    return this.perfilService.findByUsuarioId(idusuario);
+  }
+
+  @Put('actualizarusuario/:idusuario')
+async updateByUsuarioId(
+  @Param('idusuario') idusuario: string,
+  @Body() body: UpdatePerfilUsuarioDto,
+  ): Promise<PerfilUsuarios> {
+    return this.perfilService.updateByUsuarioId(idusuario, body);
+  }
+
+
 }

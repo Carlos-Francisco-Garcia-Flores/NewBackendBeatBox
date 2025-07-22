@@ -28,6 +28,7 @@ import { Usuarios } from './usuario.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthGuard } from '@nestjs/passport';
+import { identity } from 'rxjs';
 
 interface AuthenticatedRequest extends Request {
   user?: { userId: string; username: string };
@@ -99,6 +100,8 @@ export class AuthController {
         message: 'Sesión válida',
         role: decoded.role,
         username: decoded.username,
+        usuario:decoded.sub,
+        correo:decoded.correo,
       });
     } catch (error) {
       throw new UnauthorizedException('Token inválido o expirado.');

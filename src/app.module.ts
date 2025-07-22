@@ -45,6 +45,8 @@ import { Carrito } from './carrito/carrito.entity';
 import { CarritoItem } from './carrito/carrito-item.entity';
 import { PesoM } from './peso-m/peso-m.entity';
 import { PerfilUsuarios } from './perfil_usuario/perfil_usuario.entity';
+import { VentaItem } from './venta/venta-item.entity';
+import { Venta } from './venta/venta.entity';
 
 // Servicio de logs
 import { LoggerModule } from './common/loggs/logger.module';
@@ -53,6 +55,7 @@ import { SubscripcionesModule } from './subscripciones/subscripciones.module';
 import { PlaylistModule } from './playlist/playlist.module';
 import { PesoMModule } from './peso-m/peso-m.module';
 import { CarritoModule } from './carrito/carrito.module';
+import { VentaModule } from './venta/venta.module';
 
 @Module({
   imports: [
@@ -90,6 +93,8 @@ import { CarritoModule } from './carrito/carrito.module';
           Carrito,
           CarritoItem,
           PerfilUsuarios,
+          VentaItem,
+          Venta,
         ],
         synchronize: false,
         dropSchema: false,
@@ -118,6 +123,7 @@ import { CarritoModule } from './carrito/carrito.module';
       PesoMModule,
       CarritoModule,
     ],
+    VentaModule,
     
     
   ],

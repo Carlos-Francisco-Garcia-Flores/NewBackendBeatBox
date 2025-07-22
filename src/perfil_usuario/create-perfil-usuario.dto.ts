@@ -1,6 +1,10 @@
 import { IsString, IsOptional, IsDateString, IsUUID, IsNumber } from 'class-validator';
 
 export class CreatePerfilUsuarioDto {
+   @IsUUID()
+  @IsOptional()
+  id?: string; 
+
   @IsUUID()
   idusuario: string;
 
@@ -26,21 +30,10 @@ export class CreatePerfilUsuarioDto {
 
   @IsString()
   @IsOptional()
-  direccion?: string;
+  nombre_contacto_emergencia?: string;
 
   @IsString()
   @IsOptional()
-  ciudad?: string;
+  telefono_contacto_emergencia?: string;
 
-  @IsString()
-  @IsOptional()
-  codigo_postal?: string;
-
-  @IsNumber()
-  @IsOptional()
-  alturaI?: number;
-
-  @IsNumber()
-  @IsOptional()
-  pesoI?: number;
 }

@@ -1,19 +1,24 @@
-import { PerfilUsuarios } from "src/perfil_usuario/perfil_usuario.entity";
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { PerfilUsuarios } from 'src/perfil_usuario/perfil_usuario.entity';
 
-@Entity('pesosM') // nombre explícito para la tabla
+@Entity('pesos')
 export class PesoM {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({ type: 'float' })
-    peso: number;
+  @Column({ type: 'float' })
+  peso: number;
 
-    @Column({ type: 'date', nullable: true })
-    fecha: Date;
+  @Column({ type: 'date', nullable: true })
+  fecha: Date;
 
-
-    @ManyToOne(() => PerfilUsuarios, perfil => perfil.pesos, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'idperfil' }) 
-    perfil: PerfilUsuarios;
+  @ManyToOne(() => PerfilUsuarios, (perfil) => perfil.pesos)
+  @JoinColumn({ name: 'idperfil' })
+  perfilUsuario: PerfilUsuarios;
 }

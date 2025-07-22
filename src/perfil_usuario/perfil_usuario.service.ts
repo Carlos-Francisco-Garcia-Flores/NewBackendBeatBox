@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PerfilUsuarios } from './perfil_usuario.entity';
+import { NotFoundException } from '@nestjs/common';
+import { UpdatePerfilUsuarioDto } from './update-perfil-usuario.dto';
 
 @Injectable()
 export class PerfilUsuarioService {
@@ -11,9 +13,14 @@ export class PerfilUsuarioService {
   ) {}
 
   async create(data: Partial<PerfilUsuarios>): Promise<PerfilUsuarios> {
-    const perfil = this.perfilRepo.create(data);
-    return this.perfilRepo.save(perfil);
+  if (data['idusuario']) {
+    data.usuario = { id: data['idusuario'] } as any; // vincula relación
+    delete data['idusuario'];
   }
+
+  const perfil = this.perfilRepo.create(data);
+  return this.perfilRepo.save(perfil);
+}
 
   async findAll(): Promise<PerfilUsuarios[]> {
     return this.perfilRepo.find({ relations: ['usuario', 'pesos'] });
@@ -26,10 +33,41 @@ export class PerfilUsuarioService {
     });
   }
 
+  async findByUsuarioId(idusuario: string): Promise<PerfilUsuarios> {
+  return this.perfilRepo.findOne({
+    where: { usuario: { id: idusuario } },
+    relations: ['usuario', 'pesos'],
+    });
+  } 
+
   async update(id: string, data: Partial<PerfilUsuarios>): Promise<PerfilUsuarios> {
     await this.perfilRepo.update(id, data);
     return this.findOne(id);
   }
+
+    async updateByUsuarioId(
+    idusuario: string,
+    data: UpdatePerfilUsuarioDto,
+  ): Promise<PerfilUsuarios> {
+    const perfilExistente = await this.perfilRepo.findOne({
+      where: { usuario: { id: idusuario } },
+    });
+
+    if (perfilExistente) {
+      // Actualizar perfil existente
+      this.perfilRepo.merge(perfilExistente, data);
+      return this.perfilRepo.save(perfilExistente);
+    } else {
+      // Crear nuevo perfil
+      const nuevoPerfil = this.perfilRepo.create({
+        ...data,
+        usuario: { id: idusuario },
+      });
+      return this.perfilRepo.save(nuevoPerfil);
+    }
+}
+
+
 
   async remove(id: string): Promise<void> {
     await this.perfilRepo.delete(id);

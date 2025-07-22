@@ -22,11 +22,12 @@ export class PesoMService {
   }
 
   async findByPerfil(idperfil: string): Promise<PesoM[]> {
-    return this.pesoRepo.find({
-      where: { perfil: { id: idperfil } },
-      order: { fecha: 'DESC' },
-    });
-  }
+  return this.pesoRepo.find({
+    where: { perfilUsuario: { id: idperfil } },
+    relations: ['perfilUsuario'], 
+    order: { fecha: 'DESC' },
+  });
+}
 
   async remove(id: string): Promise<void> {
     await this.pesoRepo.delete(id);
