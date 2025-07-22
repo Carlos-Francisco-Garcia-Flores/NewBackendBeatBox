@@ -68,11 +68,11 @@ import { VentaModule } from './venta/venta.module';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('backend_beatboxdb'),
+        host: configService.get<string>('DB_HOST', 'localhost'),
         port: parseInt(configService.get<string>('DB_PORT', '5432')), // Puerto con fallback seguro
-        username: configService.get<string>('beatBoxAdmin'),
-        password: configService.get<string>('b34tB0x2o2v'),
-        database: configService.get<string>('beatBox'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
         entities: [
           Usuario,
           RedSocial,
