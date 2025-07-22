@@ -9,7 +9,7 @@ export class CorsMiddleware implements NestMiddleware {
     // Obtiene los orígenes permitidos desde .env o usa valores por defecto
     const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [
       'http://localhost:5173',
-      'https://backend-beatboxbackend.qvmevn.easypanel.host/',
+      'https://backend-beatboxbackend.qvmevn.easypanel.host',
       'https://darkseagreen-narwhal-925618.hostingersite.com',
       'http://10.0.2.2:3000',        
       'http://localhost:3000',       
