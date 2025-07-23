@@ -19,20 +19,24 @@ export class PlaylistService {
     }
 
     async create(data: Partial<Playlist>): Promise<Playlist> {
-    if (!data.tipo) {
-        throw new BadRequestException('El campo "tipo" es obligatorio');
-    }
+        if (!data.tipo) {
+            throw new BadRequestException('El campo "tipo" es obligatorio');
+        }
 
-    // Desactiva la playlist vigente actual del mismo tipo
-    await this.playlistRepo.update({ tipo: data.tipo, vigente: true }, { vigente: false });
+        // Convertir el tipo a minúsculas
+        const tipoNormalizado = data.tipo.toLowerCase();
 
-    // Crear la nueva playlist como vigente
-    const nueva = this.playlistRepo.create({
-        ...data,
-        vigente: true,
-    });
+        // Desactiva la playlist vigente actual del mismo tipo
+        await this.playlistRepo.update({ tipo: tipoNormalizado, vigente: true }, { vigente: false });
 
-    return this.playlistRepo.save(nueva);
+        // Crear la nueva playlist como vigente
+        const nueva = this.playlistRepo.create({
+            ...data,
+            tipo: tipoNormalizado,
+            vigente: true,
+        });
+
+        return this.playlistRepo.save(nueva);
     }
         // Obtener playlists por tipo
     async findByTipo(tipo: string): Promise<Playlist[]> {
