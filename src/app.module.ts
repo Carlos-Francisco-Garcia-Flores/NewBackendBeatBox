@@ -56,6 +56,8 @@ import { PlaylistModule } from './playlist/playlist.module';
 import { PesoMModule } from './peso-m/peso-m.module';
 import { CarritoModule } from './carrito/carrito.module';
 import { VentaModule } from './venta/venta.module';
+import { RecommendationModule } from './recommendation/recommendation.module';
+
 
 @Module({
   imports: [
@@ -124,6 +126,7 @@ import { VentaModule } from './venta/venta.module';
       CarritoModule,
     ],
     VentaModule,
+    RecommendationModule,
     
     
   ],

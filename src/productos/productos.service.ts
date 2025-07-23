@@ -186,4 +186,11 @@ export class ProductosService {
 
     return productos;
   }
+  async findByNombre(nombre: string): Promise<Producto | null> {
+  return await this.productoRepository.findOne({
+    where: { nombre },
+    relations: ['categoria', 'subcategorias'],
+  });
 }
+}
+// 
