@@ -5,6 +5,7 @@ import {
   ManyToOne,
   OneToMany,
   CreateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { Usuario } from '../usuarios/usuarios.entity';
 import { VentaItem } from './venta-item.entity';
@@ -15,6 +16,7 @@ export class Venta {
   id: string;
 
   @ManyToOne(() => Usuario, { eager: true })
+  @JoinColumn({ name: 'id_usuario' }) 
   usuario: Usuario;
 
   @OneToMany(() => VentaItem, (item) => item.venta, { cascade: true, eager: true })

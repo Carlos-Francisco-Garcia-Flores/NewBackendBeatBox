@@ -8,7 +8,8 @@ import { VentasController } from './venta.controller';
 import { Carrito } from '../carrito/carrito.entity';
 import { CarritoItem } from '../carrito/carrito-item.entity';
 import { CarritoService } from '../carrito/carrito.service';
-import {Usuario} from '../usuarios/usuarios.entity'
+import { Usuarios } from '../auth/usuario.entity';
+import { JwtCarritoStrategy } from '../common/strategies/jwt-carrito.strategy'; // Ruta según tu estructura
 
 @Module({
   imports: [
@@ -18,10 +19,10 @@ import {Usuario} from '../usuarios/usuarios.entity'
       Producto,
       Carrito,
       CarritoItem,
-      Usuario,
+      Usuarios,
     ]),
   ],
-  providers: [VentasService, CarritoService],
+  providers: [VentasService, CarritoService,JwtCarritoStrategy,],
   controllers: [VentasController],
 })
 export class VentaModule {}

@@ -27,7 +27,6 @@ export class VentaItem {
   @Column('numeric', { precision: 10, scale: 2 })
   precio_unitario: number;
 
-  // Puedes usarlo si decides guardar el subtotal directo
   @Column('numeric', { precision: 10, scale: 2 })
   subtotal: number;
 }
