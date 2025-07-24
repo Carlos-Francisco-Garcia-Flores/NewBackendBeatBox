@@ -1,5 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
 import { Incident } from '../incident/incident.entity';
+import { OneToMany } from 'typeorm';
+import { Carrito } from '../carrito/carrito.entity';
+
 
 @Entity('usuarios')
 export class Usuario {
@@ -33,4 +36,7 @@ export class Usuario {
   // Relación uno a uno con Incident
   @OneToOne(() => Incident, (incident) => incident.usuario, { cascade: true })
   incidente: Incident;
+
+  @OneToMany(() => Carrito, (carrito) => carrito.usuario)
+  carritos: Carrito[];
 }

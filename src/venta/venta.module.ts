@@ -8,6 +8,7 @@ import { VentasController } from './venta.controller';
 import { Carrito } from '../carrito/carrito.entity';
 import { CarritoItem } from '../carrito/carrito-item.entity';
 import { CarritoService } from '../carrito/carrito.service';
+import {Usuario} from '../usuarios/usuarios.entity'
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CarritoService } from '../carrito/carrito.service';
       Producto,
       Carrito,
       CarritoItem,
+      Usuario,
     ]),
   ],
   providers: [VentasService, CarritoService],

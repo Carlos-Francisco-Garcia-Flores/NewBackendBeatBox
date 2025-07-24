@@ -5,12 +5,13 @@ import {
   Delete,
   Body,
   UseGuards,
+  Patch,
   Req,
   Param,
 } from '@nestjs/common';
 import { CarritoService } from './carrito.service';
 import { AuthGuard } from '@nestjs/passport';
-import { AddProductoCarritoDto } from './carrito.dto';
+import { AddProductoCarritoDto, UpdateCantidadDto } from './carrito.dto';
 import { Request } from 'express';
 import { Usuario } from '../usuarios/usuarios.entity'; 
 
@@ -19,7 +20,7 @@ interface RequestWithUser extends Request {
 }
 
 @Controller('carrito')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt-carrito'))
 export class CarritoController {
   constructor(private readonly carritoService: CarritoService) {}
 
@@ -27,6 +28,9 @@ export class CarritoController {
   async obtener(@Req() req: RequestWithUser) {
     return this.carritoService.obtenerCarrito(req.user);
   }
+
+
+
 
   @Post('agregar')
   async agregar(
@@ -48,4 +52,14 @@ export class CarritoController {
   async vaciar(@Req() req: RequestWithUser) {
     return this.carritoService.vaciarCarrito(req.user);
   }
+
+  @Patch('actualizar')
+  async actualizar(
+    @Req() req: RequestWithUser,
+    @Body() dto: UpdateCantidadDto,
+  ) {
+    return this.carritoService.actualizarCantidad(req.user, dto);
+  }
+
+
 }

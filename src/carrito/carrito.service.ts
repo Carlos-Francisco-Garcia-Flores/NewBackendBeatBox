@@ -5,7 +5,7 @@ import { Carrito } from './carrito.entity';
 import { CarritoItem } from './carrito-item.entity';
 import { Producto } from '../productos/producto.entity';
 import { Usuario } from '../usuarios/usuarios.entity';
-import { AddProductoCarritoDto } from './carrito.dto';
+import { AddProductoCarritoDto, UpdateCantidadDto } from './carrito.dto';
 
 @Injectable()
 export class CarritoService {
@@ -18,6 +18,24 @@ export class CarritoService {
     private readonly productoRepo: Repository<Producto>,
   ) {}
 
+  async actualizarCantidad(
+    usuario: Usuario,
+    dto: UpdateCantidadDto,
+  ): Promise<Carrito> {
+    const carrito = await this.obtenerCarrito(usuario);
+
+    const item = carrito.items.find(i => i.id === dto.itemId); // ahora por ID del item
+
+    if (!item) {
+      throw new NotFoundException('Item del carrito no encontrado');
+    }
+
+    item.cantidad = dto.cantidad;
+    await this.itemRepo.save(item);
+
+    return this.obtenerCarrito(usuario);
+  }
+
   async obtenerCarrito(usuario: Usuario): Promise<Carrito> {
     let carrito = await this.carritoRepo.findOne({
       where: { usuario: { id: usuario.id } },
@@ -25,7 +43,10 @@ export class CarritoService {
     });
 
     if (!carrito) {
-      carrito = this.carritoRepo.create({ usuario, items: [] });
+      carrito = new Carrito();
+      carrito.usuario = usuario; // relación correctamente asignada
+      carrito.items = [];
+
       await this.carritoRepo.save(carrito);
     }
 
@@ -78,4 +99,9 @@ export class CarritoService {
     await this.itemRepo.remove(carrito.items);
     return this.obtenerCarrito(usuario);
   }
+
+  
+
+
+
 }
