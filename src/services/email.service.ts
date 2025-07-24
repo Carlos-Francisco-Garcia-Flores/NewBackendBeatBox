@@ -31,7 +31,7 @@ export class EmailService {
             <p style="font-size: 16px;">Hemos recibido una solicitud para restablecer tu contraseña. Si no realizaste esta solicitud, puedes ignorar este mensaje.</p>
             <p style="font-size: 16px;">Para restablecer tu contraseña, por favor haz clic en el siguiente enlace:</p>
             <p style="text-align: center; margin: 20px 0;">
-              <a href="${url}" style="
+              <a href="https://khaki-termite-457506.hostingersite.com/cambiar_contraseña?token=${resetToken}" style="
                 display: inline-block;
                 background-color: #4CAF50; /* Botón verde */
                 color: white;
