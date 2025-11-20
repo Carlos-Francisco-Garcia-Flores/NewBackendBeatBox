@@ -10,7 +10,7 @@ export class Subscripcion {
   estado: boolean;
 
   @Column({ type: 'int', nullable: true })
-  tiempo_activa: number; // En días (puedes cambiarlo a otro formato si lo deseas)
+  tiempo_activa: number; 
 
   @ManyToOne(() => Usuario, (usuario) => usuario.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'usuario_id' }) 

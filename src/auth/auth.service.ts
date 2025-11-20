@@ -141,112 +141,136 @@ export class AuthService {
   }
 
   // Login de usuario
-  async login(
-    loginDto: LoginDto,
-    @Req() req: Request,
-  ): Promise<{ token: string }> {
-    const { usuarioOEmail, password } = loginDto;
+async login(
+  loginDto: LoginDto,
+  @Req() req: Request,
+): Promise<{ token: string; usuario: any }> {
+  const { usuarioOEmail, password } = loginDto;
 
-    const sessionId = this.generateSessionID();
+  const sessionId = this.generateSessionID();
 
-    // Buscar usuario por usuario O correo electrónico
-    const user = await this.userRepository.findOne({
-      where: [
-        { usuario: usuarioOEmail },
-        { correo_electronico: usuarioOEmail },
-      ],
+  // Buscar usuario por nombre de usuario o correo
+  const user = await this.userRepository.findOne({
+    where: [
+      { usuario: usuarioOEmail },
+      { correo_electronico: usuarioOEmail },
+    ],
+  });
+
+  if (!user) {
+    throw new UnauthorizedException('Credenciales incorrectas');
+  }
+
+  if (user.bloqueado) {
+    throw new ForbiddenException(
+      'Su cuenta ha sido bloqueada. Contacte a soporte.',
+    );
+  }
+
+  if (!user.estado) {
+    throw new ForbiddenException(
+      'Debe verificar su cuenta antes de iniciar sesión.',
+    );
+  }
+
+  const userIncident = await this.incidentService.usernameIsBlocked({
+    idusuario: user.id,
+  });
+
+  if (userIncident?.isblocked) {
+    const bloqueExpiresAtMexico = new Date(
+      userIncident.blockexpiresat,
+    ).toLocaleString('es-MX', {
+      timeZone: 'America/Mexico_City',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
     });
 
-    if (!user) {
-      throw new UnauthorizedException('Credenciales incorrectas');
-    }
+    throw new ForbiddenException(
+      `Su cuenta está bloqueada hasta las ${bloqueExpiresAtMexico}`,
+    );
+  }
 
-    if (user.bloqueado) {
-      throw new ForbiddenException(
-        'Su cuenta ha sido bloqueada. Contacte a soporte.',
-      );
-    }
+  const isPasswordMatching = await bcrypt.compare(password, user.password);
+  if (!isPasswordMatching) {
+    await this.incidentService.loginFailedAttempt(user.id, req);
+    throw new UnauthorizedException('Credenciales incorrectas');
+  }
 
-    if (!user.estado) {
-      throw new ForbiddenException(
-        'Debe verificar su cuenta antes de iniciar sesión.',
-      );
-    }
-
-    const userIncident = await this.incidentService.usernameIsBlocked({
-      idusuario: user.id,
-    });
-    if (userIncident?.isblocked) {
-      const bloqueExpiresAtMexico = new Date(
-        userIncident.blockexpiresat,
-      ).toLocaleString('es-MX', {
-        timeZone: 'America/Mexico_City',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
-      });
-
-      throw new ForbiddenException(
-        `Su cuenta está bloqueada hasta las ${bloqueExpiresAtMexico}`,
-      );
-    }
-
-    const isPasswordMatching = await bcrypt.compare(password, user.password);
-    if (!isPasswordMatching) {
-      await this.incidentService.loginFailedAttempt(user.id, req);
-      throw new UnauthorizedException('Credenciales incorrectas');
-    }
-
-    const sessionExpired =
+   const sessionExpired =
       user.sessionexpiredat && new Date(user.sessionexpiredat) < new Date();
 
-    if (user.sessionId && !sessionExpired) {
-      throw new ForbiddenException(
-        'Ya hay una sesión activa en otro dispositivo. Cierra sesión antes de volver a ingresar.',
-      );
-    }
+    // if (user.sessionId && !sessionExpired) {
+    //   throw new ForbiddenException(
+    //     'Ya hay una sesión activa en otro dispositivo. Cierra sesión antes de volver a ingresar.',
+    //   );
+    // }
 
-    user.sessionId = sessionId;
-    user.sessionexpiredat = new Date(Date.now() + 3600000); // Expira en 1 hora (3600000 ms)
-    await this.userRepository.save(user);
 
-    const payload = {
+
+  // Actualizar sesión
+  user.sessionId = sessionId;
+  user.sessionexpiredat = new Date(Date.now() + 3600000); // 1 hora
+  await this.userRepository.save(user);
+
+  // Generar payload y token JWT
+  const payload = {
+    sub: user.id,
+    username: user.usuario,
+    correo: user.correo_electronico,
+    role: user.role,
+    sessionId: user.sessionId,
+  };
+
+  const token = this.jwtService.sign(payload, {
+    expiresIn: '1h',
+  });
+
+  // ✅ Retornar token y usuario
+  return {
+    token,
+    usuario: {
+      id: user.id,
       username: user.usuario,
       correo: user.correo_electronico,
-      sub: user.id,
       role: user.role,
-      sessionId: user.sessionId,
-    };
-    const token = this.jwtService.sign(payload, {
-      expiresIn: '1h', // El token expirará en 1 hora
-    });
-    return { token };
-  }
+    },
+  };
+}
+
 
   // Olvide Contraseña
-  async forgot_password(forgotPasswordDto: ForgotPasswordDto): Promise<any> {
-    const { correo_electronico } = forgotPasswordDto;
+async forgot_password(forgotPasswordDto: ForgotPasswordDto): Promise<any> {
+  const { correo_electronico } = forgotPasswordDto;
+  console.log('📩 Solicitud de recuperación para:', correo_electronico);
 
-    const user = await this.userRepository.findOne({
-      where: { correo_electronico },
-    });
+  const user = await this.userRepository.findOne({
+    where: { correo_electronico },
+  });
 
-    if (!user) {
-      throw new BadRequestException('El correo no está registrado');
-    }
-
-    const resetToken = this.jwtService.sign(
-      { id: user.id },
-      { expiresIn: '1h' },
-    );
-    await this.emailService.sendPasswordResetEmail(
-      correo_electronico,
-      resetToken,
-    );
-
-    return { message: 'Se ha enviado un correo con el enlace de recuperación' };
+  if (!user) {
+    console.log('❌ Usuario no encontrado');
+    throw new BadRequestException('El correo no está registrado');
   }
+
+  const resetToken = this.jwtService.sign(
+    { id: user.id },
+    { expiresIn: '1h' },
+  );
+
+  console.log('✅ Token generado:', resetToken);
+
+  // Enviar correo
+  await this.emailService.sendPasswordResetEmail(correo_electronico, resetToken);
+
+  console.log('📧 Correo enviado a:', correo_electronico);
+
+  return {
+    message: 'Se ha enviado un correo con el enlace de recuperación',
+  };
+}
 
   // Recuperar contraseña usando pregunta secreta
   async getSecretQuestionByUsername(dto: VerifyUsernameDto): Promise<any> {

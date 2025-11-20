@@ -33,12 +33,29 @@ export class PerfilUsuarioService {
     });
   }
 
-  async findByUsuarioId(idusuario: string): Promise<PerfilUsuarios> {
-  return this.perfilRepo.findOne({
-    where: { usuario: { id: idusuario } },
-    relations: ['usuario', 'pesos'],
+async findByUsuarioId(idusuario: string): Promise<PerfilUsuarios> {
+  try {
+    console.log('🧠 ID recibido:', idusuario);
+
+    const perfil = await this.perfilRepo.findOne({
+      where: { usuario: { id: idusuario } },
+      relations: ['usuario', 'pesos'],
     });
-  } 
+
+    console.log('🧩 Perfil encontrado:', perfil);
+
+    if (!perfil) {
+      console.warn('⚠️ No se encontró un perfil con ese usuario');
+      throw new Error('Perfil no encontrado');
+    }
+
+    return perfil;
+  } catch (error) {
+    console.error('❌ Error en findByUsuarioId:', error);
+    throw new Error('Error al obtener el perfil del usuario');
+  }
+}
+
 
   async update(id: string, data: Partial<PerfilUsuarios>): Promise<PerfilUsuarios> {
     await this.perfilRepo.update(id, data);

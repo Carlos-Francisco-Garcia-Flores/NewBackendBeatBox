@@ -39,6 +39,18 @@ export class PerfilUsuarios {
   @Column({ default: '' })
   telefono_contacto_emergencia?: string;
 
+  @Column({ type: 'float', nullable: true })
+  peso_inicial: number;
+
+  @Column({ type: 'float', nullable: true })
+  altura: number;
+
+  @Column({ type: 'float', nullable: true })
+  imc: number;
+
+  @Column({ type: 'float', nullable: true })
+  peso_objetivo: number;
+
   @OneToMany(() => PesoM, (peso) => peso.perfilUsuario)
   pesos: PesoM[];
 }

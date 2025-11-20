@@ -17,7 +17,7 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, resetToken: string) {
-    const url = `https://khaki-termite-457506.hostingersite.com/cambiar_contraseña?token=${resetToken}`;
+    const url = `http://localhost:5173/cambiar_contraseña?token=${resetToken}`;
     await this.transporter.sendMail({
       to,
       subject: '🔒 Solicitud de restablecimiento de Contraseña 🤔❓',
@@ -31,7 +31,7 @@ export class EmailService {
             <p style="font-size: 16px;">Hemos recibido una solicitud para restablecer tu contraseña. Si no realizaste esta solicitud, puedes ignorar este mensaje.</p>
             <p style="font-size: 16px;">Para restablecer tu contraseña, por favor haz clic en el siguiente enlace:</p>
             <p style="text-align: center; margin: 20px 0;">
-              <a href="https://khaki-termite-457506.hostingersite.com/cambiar_contraseña?token=${resetToken}" style="
+              <a href="http://localhost:5173/cambiar_contraseña?token=${resetToken}" style="
                 display: inline-block;
                 background-color: #4CAF50; /* Botón verde */
                 color: white;

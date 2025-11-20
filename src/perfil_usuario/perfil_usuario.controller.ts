@@ -31,6 +31,16 @@ export class PerfilUsuarioController {
     return this.perfilService.update(id, body);
   }
 
+  //Ruta para agregar peso incial y altura
+  @Put(':id/datos_iniciales')
+  updatePesoInicialYAltura(
+    @Param('id') id: string,
+    @Body() body: { peso_inicial: number; peso_objetivo: number; imc: number; altura: number },
+  ): Promise<PerfilUsuarios> {
+    return this.perfilService.update(id, body);
+  }
+
+
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
     return this.perfilService.remove(id);

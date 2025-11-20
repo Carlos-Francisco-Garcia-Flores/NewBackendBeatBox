@@ -47,32 +47,32 @@ export class SubscripcionesController {
     return this.subsService.eliminar(id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Post('pago-paypal')
-  async pagoPayPal(
-    @Body() body: { orderID: string; tipo: 'diaria' | 'semanal' | 'mensual' },
-    @Req() req: RequestWithUser,
-  ) {
-    if (!req.user) {
-      throw new UnauthorizedException('Usuario no autenticado');
-    }
+  // @UseGuards(AuthGuard('jwt'))
+  // @Post('pago-paypal')
+  // async pagoPayPal(
+  //   @Body() body: { orderID: string; tipo: 'diaria' | 'semanal' | 'mensual' },
+  //   @Req() req: RequestWithUser,
+  // ) {
+  //   if (!req.user) {
+  //     throw new UnauthorizedException('Usuario no autenticado');
+  //   }
 
-    const pago = await this.paypalService.verifyOrder(body.orderID);
+  //   const pago = await this.paypalService.verifyOrder(body.orderID);
 
-    if (pago.status !== 'COMPLETED') {
-      throw new Error('El pago no se ha completado');
-    }
+  //   if (pago.status !== 'COMPLETED') {
+  //     throw new Error('El pago no se ha completado');
+  //   }
 
-    const duracion = body.tipo === 'diaria' ? 1 : body.tipo === 'semanal' ? 7 : 30;
+  //   const duracion = body.tipo === 'diaria' ? 1 : body.tipo === 'semanal' ? 7 : 30;
 
-    const nuevaSub = await this.subsService.crear({
-      usuario: req.user,
-      tiempo_activa: duracion,
-    });
+  //   const nuevaSub = await this.subsService.crear({
+  //     usuario: req.user,
+  //     tiempo_activa: duracion,
+  //   });
 
-    return {
-      message: 'Subscripción creada correctamente',
-      subscripcion: nuevaSub,
-    };
-  }
+  //   return {
+  //     message: 'Subscripción creada correctamente',
+  //     subscripcion: nuevaSub,
+  //   };
+  // }
 }

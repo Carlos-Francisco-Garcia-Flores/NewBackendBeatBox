@@ -119,4 +119,12 @@ export class DocumentoRegulatorioService {
 
     return this.documentoRepository.save(documento);
   }
+  // Obtener solo documentos públicos (vigentes y no eliminados)
+  async getDocumentosPublicos(): Promise<DocumentoRegulatorio[]> {
+    return this.documentoRepository.find({
+      where: { vigente: true, eliminado: false },
+      order: { updatedAt: 'DESC' },
+    });
+  }
+
 }

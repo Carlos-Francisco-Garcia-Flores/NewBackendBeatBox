@@ -45,45 +45,60 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  async login(
-    @Body() loginDto: LoginDto,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    try {
-      const { token } = await this.authService.login(loginDto, req);
+async login(
+  @Body() loginDto: LoginDto,
+  @Req() req: Request,
+  @Res({ passthrough: true }) res: Response,
+) {
+  try {
+    // 🔹 authService.login() debe devolver { token, usuario }
+    const { token, usuario } = await this.authService.login(loginDto, req);
 
-      res.cookie('auth_token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 3600000,
-        path: '/',
-      });
+    // 🔹 Mantener cookie (para web)
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 3600000, // 1 hora
+      path: '/',
+    });
 
-      this.logger.log(
-        `Inicio de sesión exitoso para usuario ${loginDto.usuarioOEmail}`,
-        req,
-      );
+    this.logger.log(
+      `Inicio de sesión exitoso para usuario ${loginDto.usuarioOEmail}`,
+      req,
+    );
 
-      return { status: HttpStatus.OK, message: 'Sesión iniciada exitosamente' };
-    } catch (error) {
-      if (
-        error instanceof UnauthorizedException ||
-        error instanceof ForbiddenException
-      ) {
-        throw error;
-      }
-
-      this.logger.error(
-        `Error inesperado en el login de usuario: ${loginDto.usuarioOEmail}: ${error.message}`,
-        req,
-      );
-      throw new UnauthorizedException(
-        'Error en la autenticación, inténtalo nuevamente.',
-      );
+    // 🔹 Devolver JSON con todo lo necesario para la app móvil
+    return {
+      success: true,
+      message: 'Sesión iniciada exitosamente',
+      token, // JWT
+      usuario: {
+        id: usuario.id,
+        username: usuario.usuario || usuario.username,
+        correo: usuario.correo,
+        role: usuario.role || usuario.rol || 'usuario',
+      },
+    };
+  } catch (error) {
+    console.log(error)
+    if (
+      error instanceof UnauthorizedException ||
+      error instanceof ForbiddenException
+    ) {
+      throw error;
     }
+
+    this.logger.error(
+      `Error inesperado en el login de usuario: ${loginDto.usuarioOEmail}: ${error.message}`,
+      req,
+    );
+    throw new UnauthorizedException(
+      'Error en la autenticación, inténtalo nuevamente.',
+    );
   }
+}
+
 
   @Get('validate-user')
   async validateSession(@Req() req: Request, @Res() res: Response) {

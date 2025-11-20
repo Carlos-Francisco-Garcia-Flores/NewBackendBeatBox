@@ -15,10 +15,18 @@ import { CreateDocumentoDto, UpdateDocumentoDto } from './documento.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { DocumentoRegulatorio } from './documento-regulatorio.entity';
+
 
 @Controller('documentos')
 export class DocumentoRegulatorioController {
   constructor(private readonly documentoService: DocumentoRegulatorioService) {}
+
+   // 🔓 Endpoint público: devuelve los documentos vigentes
+  @Get('publicos')
+  async obtenerDocumentosPublicos(): Promise<DocumentoRegulatorio[]> {
+    return this.documentoService.getDocumentosPublicos();
+  }
 
   // @UseGuards(AuthGuard('jwt'), RolesGuard)
   // @Roles('admin')

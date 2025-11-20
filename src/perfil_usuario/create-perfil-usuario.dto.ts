@@ -36,4 +36,21 @@ export class CreatePerfilUsuarioDto {
   @IsOptional()
   telefono_contacto_emergencia?: string;
 
+  @IsNumber()
+  @IsOptional()
+  peso_inicial?: number;
+
+  @IsNumber()
+  @IsOptional()
+  altura?: number;
+
+    @IsNumber()
+  @IsOptional()
+  imc?: number;
+
+  @IsNumber()
+  @IsOptional()
+  peso_objetivo?: number;
+
+
 }
