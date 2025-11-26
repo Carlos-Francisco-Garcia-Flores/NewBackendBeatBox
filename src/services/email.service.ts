@@ -17,7 +17,7 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, resetToken: string) {
-    const url = `https://proyecto-beatbox.vercel.app/cambiar_contraseña?token=${resetToken}`;
+    const url = `https://proyecto-beatbox.vercel.app/cambiar_contrasena?token=${resetToken}`;
     await this.transporter.sendMail({
       to,
       subject: '🔒 Solicitud de restablecimiento de Contraseña 🤔❓',
@@ -31,7 +31,7 @@ export class EmailService {
             <p style="font-size: 16px;">Hemos recibido una solicitud para restablecer tu contraseña. Si no realizaste esta solicitud, puedes ignorar este mensaje.</p>
             <p style="font-size: 16px;">Para restablecer tu contraseña, por favor haz clic en el siguiente enlace:</p>
             <p style="text-align: center; margin: 20px 0;">
-              <a href="https://proyecto-beatbox.vercel.app/cambiar_contraseña?token=${resetToken}" style="
+              <a href="https://proyecto-beatbox.vercel.app/cambiar_contrasena?token=${resetToken}" style="
                 display: inline-block;
                 background-color: #4CAF50; /* Botón verde */
                 color: white;
